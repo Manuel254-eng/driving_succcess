@@ -27,9 +27,34 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav ms-auto">
-                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/find-instructors">Find Instructors</a></li>
-                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/login">Login</a></li>
-                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/register">Register</a></li>
+                        {% if user_info %}
+                           <!-- Display username if logged in -->
+                           <li class="nav-item dropdown">
+                                   <a class="nav-link py-3 px-0 px-lg-3 rounded dropdown-toggle" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="color: white;">
+                                        {% if user_info.profile_pic_url %}
+                                            <img src="{{ url_for('static', filename='uploads/images/' + user_info.profile_pic_url) }}" alt="..." class="rounded-circle" style="width: 40px; height: 40px;">
+                                         {% else %}
+                                             <img src="{{ url_for('static', filename='uploads/images/default_pic.png') }}" alt="..." class="rounded-circle" style="width: 40px; height: 40px;">
+                                         {% endif %}
+                                      {{ user_info.username }}
+                                   </a>
+                               <div class="dropdown-menu" aria-labelledby="userDropdown">
+                                  <!-- Add other dropdown items as needed -->
+                                   <a class="dropdown-item" href="#">Profile</a>
+                                   <a class="dropdown-item" href="#">Settings</a>
+                                   <div class="dropdown-divider"></div>
+                                   <a class="dropdown-item" href="/logout">Logout</a>
+                               </div>
+                             </li>
+                        {% else %}
+                          <li class="nav-item mx-0 mx-lg-1">
+                            <a class="nav-link py-3 px-0 px-lg-3 rounded" href="/find-instructors">Find Instructors
+                            </a>
+                           </li>
+                          <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/login">Login</a></li>
+                          <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/register">Register</a></li>
+                        {% endif %}
+
                     </ul>
                 </div>
             </div>

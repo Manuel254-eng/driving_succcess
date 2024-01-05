@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Driving Lessons</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/form-wizard.css') }}">
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <link href=" https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.css">
+
+
+
+        <style>
+        body{
+        background-color: #F5F5DD;
+        }
+        </style>
+
+    </head>
+    <body >
+
+    <div class="container-fluid">
+	<div class="row justify-content-center">
+		<div class="col-12 col-sm-11 col-md-10 col-lg-9 col-xl-8 text-center p-0 mt-3 mb-2">
+            <div class="card px-0 pt-4 pb-0 mt-3 mb-3">
+                <h2 id="heading">Almost there</h2>
+                <p>We need a few more details about you.</p>
+
+                <form id="msform" action="capture_traits" method="post" enctype="multipart/form-data">
+                    <!-- progressbar -->
+                    <ul id="progressbar">
+                        <li class="active" id="personal"><strong>Account</strong></li>
+                        <li id="personal"><strong>Instructor</strong></li>
+                        <li id="personal"><strong>Personality</strong></li>
+                        <li id="payment"><strong>Image</strong></li>
+                        <li id="confirm"><strong>Finish</strong></li>
+                    </ul>
+                    <div class="progress">
+                    	<div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
+                	</div>
+                    <br>
+                    <!-- fieldsets -->
+                    <fieldset>
+                        <div class="form-card">
+                        	<div class="row">
+                        		<div class="col-7">
+                            		<h2 class="fs-title">Account Information:</h2>
+                            	</div>
+                            	<div class="col-5">
+                            		<h2 class="steps">Step 1 - 5</h2>
+                            	</div>
+                            </div>
+                            <label class="fieldlabels">Age: *</label>
+                            <input type="number" name="age" placeholder="Age" required/>
+                            <label class="fieldlabels">Gender: *</label>
+                            <select name="gender">
+                            <option value="M">Male</option>
+                            <option value="F">Female</option>
+                            <option value="O">Prefer not to say</option>
+                            </select>
+
+                            <label class="fieldlabels">Which Language do you prefer most for communication: *</label>
+                            <select  data-placeholder="Choose a Language..." name="language">
+                            <option value="Afrikaans">Afrikaans</option>
+                            <option value="Albanian">Albanian</option>
+                            <option value="Arabic">Arabic</option>
+                            <option value="Armenian">Armenian</option>
+                            <option value="Basque">Basque</option>
+                            <option value="Bengali">Bengali</option>
+                            <option value="Bulgarian">Bulgarian</option>
+                            <option value="Catalan">Catalan</option>
+                            <option value="Cambodian">Cambodian</option>
+                            <option value="Chinese (Mandarin)">Chinese (Mandarin)</option>
+                            <option value="Croatian">Croatian</option>
+                            <option value="Czech">Czech</option>
+                            <option value="Danish">Danish</option>
+                            <option value="Dutch">Dutch</option>
+                            <option value="English" selected>English</option>
+                            <option value="Estonian">Estonian</option>
+                            <option value="Fiji">Fiji</option>
+                            <option value="Finnish">Finnish</option>
+                            <option value="French">French</option>
+                            <option value="Georgian">Georgian</option>
+                            <option value="German">German</option>
+                            <option value="Greek">Greek</option>
+                            <option value="Gujarati">Gujarati</option>
+                            <option value="Hebrew">Hebrew</option>
+                            <option value="Hindi">Hindi</option>
+                            <option value="Hungarian">Hungarian</option>
+                            <option value="Icelandic">Icelandic</option>
+                            <option value="Indonesian">Indonesian</option>
+                            <option value="Irish">Irish</option>
+                            <option value="Italian">Italian</option>
+                            <option value="Japanese">Japanese</option>
+                            <option value="Javanese">Javanese</option>
+                            <option value="Korean">Korean</option>
+                            <option value="Latin">Latin</option>
+                            <option value="Latvian">Latvian</option>
+                            <option value="Lithuanian">Lithuanian</option>
+                            <option value="Macedonian">Macedonian</option>
+                            <option value="Malay">Malay</option>
+                            <option value="Malayalam">Malayalam</option>
+                            <option value="Maltese">Maltese</option>
+                            <option value="Maori">Maori</option>
+                            <option value="Marathi">Marathi</option>
+                            <option value="Mongolian">Mongolian</option>
+                            <option value="Nepali">Nepali</option>
+                            <option value="Norwegian">Norwegian</option>
+                            <option value="Persian">Persian</option>
+                            <option value="Polish">Polish</option>
+                            <option value="Portuguese">Portuguese</option>
+                            <option value="Punjabi">Punjabi</option>
+                            <option value="Quechua">Quechua</option>
+                            <option value="Romanian">Romanian</option>
+                            <option value="Russian">Russian</option>
+                            <option value="Samoan">Samoan</option>
+                            <option value="Serbian">Serbian</option>
+                            <option value="Slovak">Slovak</option>
+                            <option value="Slovenian">Slovenian</option>
+                            <option value="Spanish">Spanish</option>
+                            <option value="Swahili">Swahili</option>
+                            <option value="Swedish ">Swedish </option>
+                            <option value="Tamil">Tamil</option>
+                            <option value="Tatar">Tatar</option>
+                            <option value="Telugu">Telugu</option>
+                            <option value="Thai">Thai</option>
+                            <option value="Tibetan">Tibetan</option>
+                            <option value="Tonga">Tonga</option>
+                            <option value="Turkish">Turkish</option>
+                            <option value="Ukrainian">Ukrainian</option>
+                            <option value="Urdu">Urdu</option>
+                            <option value="Uzbek">Uzbek</option>
+                            <option value="Vietnamese">Vietnamese</option>
+                            <option value="Welsh">Welsh</option>
+                            <option value="Xhosa">Xhosa</option>
+                            </select>
+                        </div>
+                        <input type="button" name="next" class="next action-button" value="Next"/>
+                    </fieldset>
+                    <fieldset>
+                        <div class="form-card">
+                            <div class="row">
+                        		<div class="col-7">
+                            		<h2 class="fs-title">Instructor details:</h2>
+                            	</div>
+                            	<div class="col-5">
+                            		<h2 class="steps">Step 2 - 5</h2>
+                            	</div>
+                            </div>
+                            <label class="fieldlabels">How many years of experience do you have as an instructor:</label>
+                            <input type="number" name="instructor_experience" />
+                            <label class="fieldlabels">Vehicle Transmission Type:</label>
+                            <select >
+                            <option value="manual"> Manual </option>
+                            <option value="automatic"> Automatic </option>
+                            </select>
+                            <label class="fieldlabels">Vehicle Category:</label>
+                            <select>
+                            <option value="sedan"> Sedan </option>
+                            <option value="suv"> SUV </option>
+                            <option value="suv"> Heavy commercial vehicle </option>
+                            </select>
+                            <label class="fieldlabels">Vehicle Model:</label>
+                            <input type="text" name="vehicle_model" />
+                            <label class="fieldlabels">Charges per session:</label>
+                            <input type="number" name="charges_per_session" />
+                            <label class="fieldlabels">How many minutes per session:</label>
+                            <input type="number" name="minutes_per_session" />
+
+
+
+
+                        </div>
+                        <input type="button" name="next" class="next action-button" value="Next"/>
+                        <input type="button" name="previous" class="previous action-button-previous" value="Previous"/>
+                    </fieldset>
+                    <fieldset>
+                        <div class="form-card">
+                            <div class="row">
+                        		<div class="col-7">
+                            		<h2 class="fs-title">A little more about you</h2>
+                            	</div>
+                            	<div class="col-5">
+                            		<h2 class="steps">Step 3 - 5</h2>
+                            	</div>
+                            </div>
+                            <label class="fieldlabels">Please select trait that best describes you*</label>
+                            <div class="form-check">
+                            <input class="form-check-input" type="radio" name="introversion_extroversion" id="1" value="1" checked>
+                            <label class="form-check-label" for="1">
+                            Introverted
+                            </label>
+                            </div>
+                            <div class="form-check">
+                            <input class="form-check-input" type="radio" name="introversion_extroversion" id="2" value="2">
+                            <label class="form-check-label" for="2">
+                            Extroverted
+                            </label>
+                            </div>
+                            <hr/>
+
+                            {% for trait in traits %}
+                              <div class="form-check">
+                                 <input class="form-check-input" type="checkbox" id="trait{{ trait.trait_id }}" name="traits[]" value="{{ trait.trait_id }}">
+                                 <label class="form-check-label" for="trait{{ trait.trait_id }}">{{ trait.trait_name }}</label>
+                               </div>
+                             {% endfor %}
+
+                        </div>
+                        <input type="button" name="next" class="next action-button" value="Next"/>
+                        <input type="button" name="previous" class="previous action-button-previous" value="Previous"/>
+                    </fieldset>
+                    <fieldset>
+                        <div class="form-card">
+                            <div class="row">
+                        		<div class="col-7">
+                            		<h2 class="fs-title">Image Upload:</h2>
+                            	</div>
+                            	<div class="col-5">
+                            		<h2 class="steps">Step 4 - 5</h2>
+                            	</div>
+                            </div>
+                            <label class="fieldlabels">Upload Your Photo:</label>
+                            <input type="file" name="pic" accept="image/*">
+                        </div>
+                        <input type="submit" name="next" class="next action-button" value="Submit"/>
+                        <input type="button" name="previous" class="previous action-button-previous" value="Previous"/>
+                    </fieldset>
+                    <fieldset>
+                        <div class="form-card">
+                        	<div class="row">
+                        		<div class="col-7">
+                            		<h2 class="fs-title">Finish:</h2>
+                            	</div>
+                            	<div class="col-5">
+                            		<h2 class="steps">Step 5 - 5</h2>
+                            	</div>
+                            </div>
+                            <br><br>
+                            <h2 class="purple-text text-center"><strong>SUCCESS !</strong></h2>
+                            <br>
+                            <div class="row justify-content-center">
+                                <div class="col-3">
+                                <img class="img-fluid" src="{{ url_for('static', filename='assets/img/GwStPmg.png') }}"   />
+                                </div>
+                            </div>
+                            <br><br>
+                            <div class="row justify-content-center">
+                                <div class="col-7 text-center">
+                                    <h5 class="purple-text text-center">You Have Successfully Signed Up</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+	</div>
+</div>
+
+
+
+
+
+
+
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/form-wizard.js') }}"></script>
+
+        <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+    </body>
+</html>

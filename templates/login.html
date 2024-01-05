@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Driving Success</title>
+	<!-- Mobile Specific Metas -->
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<!-- Font-->
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/sourcesanspro-font.css') }}">
+	<!-- Main Style Css -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+    .error-message{
+    color: red;
+    background-color: white;
+    text-align: center;
+
+    }
+    </style>
+</head>
+
+<body class="form-v8">
+	<div class="page-content">
+		<div class="form-v8-content">
+			<div class="form-left">
+				<img src="https://www.shutterstock.com/image-photo/happy-biracial-sisters-sitting-car-600nw-2285535645.jpg" alt="form">
+			</div>
+			<div class="form-right">
+			<h2 style="text-align: center;"> SIGN IN</h2>
+
+							 {% if error %}
+                                  <div class="error-message" id="error-message" >
+                                     {{ error }}
+                                  </div>
+                             {% endif %}
+				<form class="form-detail" action="login" method="post">
+
+					<div class="tabcontent" id="learner">
+
+						<div class="form-row">
+							<label class="form-row-inner">
+								<input type="text" name="email" id="email" class="input-text" required>
+								<span class="label">E-Mail</span>
+		  						<span class="border"></span>
+							</label>
+						</div>
+						<div class="form-row">
+							<label class="form-row-inner">
+								<input type="password" name="password" id="password" class="input-text" required>
+								<span class="label">Password</span>
+								<span class="border"></span>
+							</label>
+						</div>
+
+
+						<div class="form-row-last">
+							<input type="submit" name="login" class="register" value="Login">
+						</div>
+						<a href="login" style="color:white; ">No account? Register here</a>
+					</div>
+				</form>
+
+
+			</div>
+		</div>
+	</div>
+<!-- 	 Clear error message-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Clear the error message when the user starts typing
+        document.getElementById('email').addEventListener('input', clearErrorMessage);
+        document.getElementById('password').addEventListener('input', clearErrorMessage);
+
+        function clearErrorMessage() {
+            document.getElementById('error-message').innerText = '';
+        }
+    });
+</script>
+<!--  clear error message-->
+
+
+	<script type="text/javascript">
+		function openCity(evt, cityName) {
+		    var i, tabcontent, tablinks;
+		    tabcontent = document.getElementsByClassName("tabcontent");
+		    for (i = 0; i < tabcontent.length; i++) {
+		        tabcontent[i].style.display = "none";
+		    }
+		    tablinks = document.getElementsByClassName("tablinks");
+		    for (i = 0; i < tablinks.length; i++) {
+		        tablinks[i].className = tablinks[i].className.replace(" active", "");
+		    }
+		    document.getElementById(cityName).style.display = "block";
+		    evt.currentTarget.className += " active";
+		}
+
+		// Get the element with id="defaultOpen" and click on it
+		document.getElementById("defaultOpen").click();
+	</script>
+</body><!-- This templates was made by Colorlib (https://colorlib.com) -->
+</html>

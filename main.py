@@ -36,7 +36,16 @@ with app.app_context():
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    user_id = session.get('user_id')
+    user_info = None
+
+    if user_id:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+        user_info = cursor.fetchone()
+        cursor.close()
+
+    return render_template('index.html', user_info=user_info)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -63,15 +72,40 @@ def register():
 
         # Start a session and store user_id
         session['user_id'] = user_id
+        if role == 'learner':
+            return redirect(url_for('capture_traits'))
+        elif role == 'instructor':
+            return redirect(url_for('instructor_on_boarding'))
 
-        # Redirect to the login page
-        return redirect(url_for('capture_traits'))
 
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password_candidate = request.form.get('password')
+
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT id, password FROM users WHERE email = %s', (email,))
+        user = cursor.fetchone()
+        cursor.close()
+
+        if user and sha256_crypt.verify(password_candidate, user['password']):
+            # Password is correct, log in the user
+            session['user_id'] = user['id']
+            return redirect(url_for('home'))
+        else:
+            # Invalid credentials, show an error message or redirect to the login page
+            return render_template('login.html', error='Invalid email or password')
+
     return render_template('login.html')
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('home'))
 
 
 def allowed_file(filename):
@@ -156,6 +190,21 @@ def capture_traits():
 @app.route('/success_page', methods=['GET', 'POST'])
 def success_page():
     return render_template('capture_success.html')
+
+
+# Instructor onboarding
+@app.route('/instructor_on_boarding', methods=['GET', 'POST'])
+def instructor_on_boarding():
+    user_id = session.get('user_id')
+    if user_id:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT id, trait_name FROM in_built_traits ORDER BY id LIMIT 18446744073709551615 OFFSET 2')
+        traits = [{'trait_id': row['id'], 'trait_name': row['trait_name']} for row in cursor.fetchall()]
+        cursor.close()
+        return render_template('instructor_on_boarding.html', traits=traits)
+
+    return redirect(url_for('register'))
+
 
 
 if __name__ == '__main__':
