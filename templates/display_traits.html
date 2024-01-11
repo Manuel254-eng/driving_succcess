@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display Traits</title>
+</head>
+<body>
+{% for trait_category in trait_categories %}
+    <div>
+        <p>{{ trait_category.question }}</p>
+        <form>
+            {% for trait in trait_category.traits %}
+                <input type="radio" id="{{ trait.trait_id }}" name="trait_category_{{ trait_category.trait_id }}" value="{{ trait.trait_id }}">
+                <label for="{{ trait.trait_id }}">{{ trait.trait_name }}</label><br>
+            {% endfor %}
+        </form>
+    </div>
+{% endfor %}
+
+
+</body>
+</html>

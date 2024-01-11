@@ -30,7 +30,7 @@
                 <h2 id="heading">Almost there</h2>
                 <p>We need a few more details about you.</p>
 
-                <form id="msform" action="capture_traits" method="post" enctype="multipart/form-data">
+                <form id="msform" action="capture_instructor_traits" method="post" enctype="multipart/form-data">
                     <!-- progressbar -->
                     <ul id="progressbar">
                         <li class="active" id="personal"><strong>Account</strong></li>
@@ -138,6 +138,9 @@
                             <option value="Welsh">Welsh</option>
                             <option value="Xhosa">Xhosa</option>
                             </select>
+
+                            <label class="fieldlabels">Description: *</label>
+                            <textarea name="description"> </textarea>
                         </div>
                         <input type="button" name="next" class="next action-button" value="Next"/>
                     </fieldset>
@@ -188,27 +191,21 @@
                             		<h2 class="steps">Step 3 - 5</h2>
                             	</div>
                             </div>
-                            <label class="fieldlabels">Please select trait that best describes you*</label>
-                            <div class="form-check">
-                            <input class="form-check-input" type="radio" name="introversion_extroversion" id="1" value="1" checked>
-                            <label class="form-check-label" for="1">
-                            Introverted
-                            </label>
-                            </div>
-                            <div class="form-check">
-                            <input class="form-check-input" type="radio" name="introversion_extroversion" id="2" value="2">
-                            <label class="form-check-label" for="2">
-                            Extroverted
-                            </label>
-                            </div>
-                            <hr/>
 
-                            {% for trait in traits %}
-                              <div class="form-check">
-                                 <input class="form-check-input" type="checkbox" id="trait{{ trait.trait_id }}" name="traits[]" value="{{ trait.trait_id }}">
-                                 <label class="form-check-label" for="trait{{ trait.trait_id }}">{{ trait.trait_name }}</label>
-                               </div>
+                            {% for trait_category in trait_categories %}
+                             <div>
+                                <label class="fieldlabels">{{ trait_category.question }}*</label>
+                                              {% for trait in trait_category.traits %}
+                                                   <div class="form-check">
+                                                      <input class="form-check-input" type="radio" name="trait_category_{{ trait_category.trait_id }}" id="{{ trait.trait_id }}" value="{{ trait.trait_id }}" checked>
+                                                      <label class="form-check-label" for="{{ trait.trait_id }}">
+                                                         {{ trait.trait_name }}
+                                                      </label>
+                                                    </div>
+                                              {% endfor %}
+                             </div>
                              {% endfor %}
+
 
                         </div>
                         <input type="button" name="next" class="next action-button" value="Next"/>

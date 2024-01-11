@@ -198,12 +198,39 @@ def instructor_on_boarding():
     user_id = session.get('user_id')
     if user_id:
         cursor = mysql.connection.cursor()
-        cursor.execute('SELECT id, trait_name FROM in_built_traits ORDER BY id LIMIT 18446744073709551615 OFFSET 2')
-        traits = [{'trait_id': row['id'], 'trait_name': row['trait_name']} for row in cursor.fetchall()]
+        cursor.execute('SELECT * FROM trait_categories')
+        trait_categories = [
+            {'trait_id': row['id'], 'trait_category_name': row['trait_category_name'], 'question': row['instructor_q']}
+            for row in cursor.fetchall()]
+
+        for trait_category in trait_categories:
+            cursor.execute('SELECT * FROM in_built_instructor_traits WHERE trait_category = %s',
+                           (trait_category['trait_id'],))
+            traits = [{'trait_id': row['id'], 'trait_name': row['trait_name']} for row in cursor.fetchall()]
+            trait_category['traits'] = traits
+
         cursor.close()
-        return render_template('instructor_on_boarding.html', traits=traits)
+        return render_template('instructor_on_boarding.html', trait_categories=trait_categories)
 
     return redirect(url_for('register'))
+
+
+
+
+@app.route('/display_traits')
+def display_traits():
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT * FROM trait_categories')
+    trait_categories = [{'trait_id': row['id'], 'trait_category_name': row['trait_category_name'], 'question': row['instructor_q']} for row in cursor.fetchall()]
+
+    for trait_category in trait_categories:
+        cursor.execute('SELECT * FROM in_built_instructor_traits WHERE trait_category = %s',
+                       (trait_category['trait_id'],))
+        traits = [{'trait_id': row['id'], 'trait_name': row['trait_name']} for row in cursor.fetchall()]
+        trait_category['traits'] = traits
+
+    cursor.close()
+    return render_template('display_traits.html', trait_categories=trait_categories)
 
 
 
