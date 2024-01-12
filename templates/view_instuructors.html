@@ -20,26 +20,26 @@
     {% if user_info %}
     {{ user_info.username }}
     {% endif %}
-<ul>
-  {% for instructor in instructors %}
-    <li>{{ instructor.first_name }} {{ instructor.last_name }} - Traits:
 
-        {% for trait in instructor.traits %}
-          - {{ trait.captured_trait }}
-        {% endfor %}
-
-    </li>
-  {% endfor %}
-</ul>
-
-
-    <ul>
-  {% for learner_trait in learner_traits %}
-    <li>
-
-    {{ learner_trait.captured_trait }} </li>
-  {% endfor %}
-</ul>
+<section>
+    <h2>Instructor Similarity:</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Instructor Name</th>
+                <th> Match %</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in results %}
+                <tr>
+                    <td>{{ result.instructor_name }}</td>
+                    <td>{{ result.similarity_count }} %</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
 
     </body>
 </html>

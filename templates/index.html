@@ -89,70 +89,34 @@
                 </div>
                 <!-- Portfolio Grid Items-->
                 <div class="row justify-content-center">
-                    <!-- Portfolio Item 1-->
+                 {% for result in results %}
+                      <!-- Portfolio Item 1-->
                     <div class="col-md-6 col-lg-4 mb-5">
                         <div class="portfolio-item mx-auto" data-bs-toggle="modal" data-bs-target="#portfolioModal1">
                             <div class="portfolio-item-caption d-flex align-items-center justify-content-center h-100 w-100">
                                 <div class="portfolio-item-caption-content text-center text-white"><i class="fas fa-plus fa-3x"></i></div>
                             </div>
+                            {% if result.profile_pic_url %}
+                                <img class="img-fluid" src="{{ url_for('static', filename='uploads/images/' + result.profile_pic_url) }}" alt="..." class="rounded-circle" >
+                            {% elif result.profile_pic_url is None %}
                             <img class="img-fluid" src="{{ url_for('static', filename='assets/img/portfolio/instructor-1.png') }}"  alt="..." />
+                            {% else %}
+                                 <img class="img-fluid" src="{{ url_for('static', filename='assets/img/portfolio/instructor-1.png') }}"  alt="..." />
+                            {% endif %}
+
                         </div>
-                        <h5> <span> MATCH:</span> &nbsp <span style="color: navy;">56%</span></h5>
+                        <h5>  {{ result.instructor_name }} <span> MATCH:</span> &nbsp <span style="color: navy;">{{ result.similarity_percentage }} %</span></h5>
 
 
                     </div>
-                    <!-- Portfolio Item 2-->
-                    <div class="col-md-6 col-lg-4 mb-5">
-                        <div class="portfolio-item mx-auto" data-bs-toggle="modal" data-bs-target="#portfolioModal2">
-                            <div class="portfolio-item-caption d-flex align-items-center justify-content-center h-100 w-100">
-                                <div class="portfolio-item-caption-content text-center text-white"><i class="fas fa-plus fa-3x"></i></div>
-                            </div>
-                             <img class="img-fluid" src="{{ url_for('static', filename='assets/img/portfolio/instructor-2.png') }}"  alt="..." />
-                        </div>
-                        <h5> <span> MATCH:</span> &nbsp <span style="color: navy;">56%</span></h5>
-                    </div>
-                    <!-- Portfolio Item 3-->
-                    <div class="col-md-6 col-lg-4 mb-5">
-                        <div class="portfolio-item mx-auto" data-bs-toggle="modal" data-bs-target="#portfolioModal3">
-                            <div class="portfolio-item-caption d-flex align-items-center justify-content-center h-100 w-100">
-                                <div class="portfolio-item-caption-content text-center text-white"><i class="fas fa-plus fa-3x"></i></div>
-                            </div>
-                             <img  class="img-fluid" src="{{ url_for('static', filename='assets/img/portfolio/instructor-3.png') }}"  alt="..." />
-                        </div>
-                        <h5> <span> MATCH:</span> &nbsp <span style="color: navy;">56%</span></h5>
-                    </div>
-                    <!-- Portfolio Item 4-->
-                    <div class="col-md-6 col-lg-4 mb-5 mb-lg-0">
-                        <div class="portfolio-item mx-auto" data-bs-toggle="modal" data-bs-target="#portfolioModal4">
-                            <div class="portfolio-item-caption d-flex align-items-center justify-content-center h-100 w-100">
-                                <div class="portfolio-item-caption-content text-center text-white"><i class="fas fa-plus fa-3x"></i></div>
-                            </div>
-                            <img class="img-fluid" src="{{ url_for('static', filename='assets/img/portfolio/instructor-4.png') }}"  alt="..." />
-                        </div>
-                        <h5> <span> MATCH:</span> &nbsp <span style="color: navy;">56%</span></h5>
-                    </div>
-                    <!-- Portfolio Item 5-->
-                    <div class="col-md-6 col-lg-4 mb-5 mb-md-0">
-                        <div class="portfolio-item mx-auto" data-bs-toggle="modal" data-bs-target="#portfolioModal5">
-                            <div class="portfolio-item-caption d-flex align-items-center justify-content-center h-100 w-100">
-                                <div class="portfolio-item-caption-content text-center text-white"><i class="fas fa-plus fa-3x"></i></div>
-                            </div>
-                             <img class="img-fluid" src="{{ url_for('static', filename='assets/img/portfolio/instructor-5.png') }}"  alt="..." />
-                        </div>
-                        <h5> <span> MATCH:</span> &nbsp <span style="color: navy;">56%</span></h5>
-                    </div>
-                    <!-- Portfolio Item 6-->
-                    <div class="col-md-6 col-lg-4">
-                        <div class="portfolio-item mx-auto" data-bs-toggle="modal" data-bs-target="#portfolioModal6">
-                            <div class="portfolio-item-caption d-flex align-items-center justify-content-center h-100 w-100">
-                                <div class="portfolio-item-caption-content text-center text-white"><i class="fas fa-plus fa-3x"></i></div>
-                            </div>
-                            <img class="img-fluid" src="{{ url_for('static', filename='assets/img/portfolio/instructor-6.png') }}"  alt="..." />
-                        </div>
-                        <h5> <span> MATCH:</span> &nbsp <span style="color: navy;">56%</span></h5>
-                    </div>
-                </div>
-            </div>
+
+
+                {% endfor %}
+
+
+
+
+
         </section>
         <!-- About Section-->
         <section class="page-section bg-primary text-white mb-0" id="about">

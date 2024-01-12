@@ -45,6 +45,43 @@ def home():
         user_info = cursor.fetchone()
         cursor.close()
 
+        # Fetch instructors
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM users WHERE role = %s  LIMIT 6', ('instructor',))
+        instructors = cursor.fetchall()
+
+        # Fetch captured traits for the user
+        cursor.execute('SELECT * FROM captured_learner_traits WHERE user_id = %s', (user_id,))
+        learner_traits = cursor.fetchall()
+
+        # Prepare a list to store the results
+        results = []
+
+        # Calculate and store the similarity count for each instructor
+        for instructor in instructors:
+            # Fetch captured traits for each instructor
+            cursor = mysql.connection.cursor()
+            cursor.execute('SELECT * FROM captured_traits WHERE user_id = %s', (instructor['id'],))
+            instructor_traits = cursor.fetchall()
+            cursor.close()
+
+            # Perform similarity check
+            similarity_count = sum(1 for user_trait in learner_traits for instructor_trait in instructor_traits
+                                   if user_trait['trait_category_id'] == instructor_trait['trait_category_id']
+                                   and user_trait['captured_trait'] == instructor_trait['captured_trait'])
+            similarity_percentage = round(similarity_count / 13 * 100)
+
+            # Append results for this instructor
+            results.append({
+                'instructor_name': f"{instructor['first_name']} {instructor['last_name']}",
+                'profile_pic_url': f"{instructor['profile_pic_url']} ",
+                'similarity_percentage': similarity_percentage
+            })
+            results = sorted(results, key=lambda x: x['similarity_percentage'], reverse=True)
+
+        # Move the return statement outside of the loop
+        return render_template('index.html', user_info=user_info, results=results)
+
     return render_template('index.html', user_info=user_info)
 
 @app.route('/view_instructors')
@@ -52,32 +89,51 @@ def view_instructors():
     user_id = session.get('user_id')
     user_info = None
     if user_id:
+        # Fetch user information
         cursor = mysql.connection.cursor()
         cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
         user_info = cursor.fetchone()
         cursor.close()
 
-        cursor = mysql.connection.cursor()
-        role = 'instructor'
         # Fetch instructors
-        cursor.execute('SELECT * FROM users WHERE role = %s', (role,))
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM users WHERE role = %s', ('instructor',))
         instructors = cursor.fetchall()
 
-        # Fetch associated traits for each instructor
-        for instructor in instructors:
-            cursor.execute('SELECT * FROM captured_traits WHERE user_id = %s', (instructor['id'],))
-            instructor['traits'] = cursor.fetchall()
-
-        # Don't forget to close the cursor
-        cursor.close()
-
-
-        cursor = mysql.connection.cursor()
+        # Fetch captured traits for the user
         cursor.execute('SELECT * FROM captured_learner_traits WHERE user_id = %s', (user_id,))
         learner_traits = cursor.fetchall()
+
+        # Prepare a list to store the results
+        results = []
+
+        # Calculate and store the similarity count for each instructor
+        for instructor in instructors:
+            # Fetch captured traits for each instructor
+            cursor = mysql.connection.cursor()
+            cursor.execute('SELECT * FROM captured_traits WHERE user_id = %s', (instructor['id'],))
+            instructor_traits = cursor.fetchall()
+            cursor.close()
+
+            # Perform similarity check
+            similarity_count = sum(1 for user_trait in learner_traits for instructor_trait in instructor_traits
+                                  if user_trait['trait_category_id'] == instructor_trait['trait_category_id']
+                                  and user_trait['captured_trait'] == instructor_trait['captured_trait'])
+            similarity_count = round(similarity_count /13 * 100)
+
+            # Append results for this instructor
+            results.append({
+                'instructor_name': f"{instructor['first_name']} {instructor['last_name']}",
+                'similarity_count': similarity_count
+            })
+
+        # Render the template with the results
+        return render_template('view_instuructors.html', user_info=user_info, results=results)
+
+        # Close the cursor
         cursor.close()
 
-        return render_template('view_instuructors.html', instructors=instructors,  user_info=user_info, learner_traits=learner_traits )
+        return render_template('view_instuructors.html', instructors=instructors, user_info=user_info, learner_traits=learner_traits)
 
 
 @app.route('/view_learner_traits')
