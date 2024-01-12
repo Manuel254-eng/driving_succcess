@@ -47,6 +47,55 @@ def home():
 
     return render_template('index.html', user_info=user_info)
 
+@app.route('/view_instructors')
+def view_instructors():
+    user_id = session.get('user_id')
+    user_info = None
+    if user_id:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+        user_info = cursor.fetchone()
+        cursor.close()
+
+        cursor = mysql.connection.cursor()
+        role = 'instructor'
+        # Fetch instructors
+        cursor.execute('SELECT * FROM users WHERE role = %s', (role,))
+        instructors = cursor.fetchall()
+
+        # Fetch associated traits for each instructor
+        for instructor in instructors:
+            cursor.execute('SELECT * FROM captured_traits WHERE user_id = %s', (instructor['id'],))
+            instructor['traits'] = cursor.fetchall()
+
+        # Don't forget to close the cursor
+        cursor.close()
+
+
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM captured_learner_traits WHERE user_id = %s', (user_id,))
+        learner_traits = cursor.fetchall()
+        cursor.close()
+
+        return render_template('view_instuructors.html', instructors=instructors,  user_info=user_info, learner_traits=learner_traits )
+
+
+@app.route('/view_learner_traits')
+def view_learner_traits():
+    user_id = session.get('user_id')
+    user_info = None
+
+    if user_id:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+        user_info = cursor.fetchone()
+        cursor.close()
+
+
+    return render_template('index.html', user_info=user_info)
+
+
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -148,26 +197,21 @@ def capture_traits():
 
             cursor.close()
 
+            # insert traits into captured traits
+            captured_traits = []
+            # Iterate over form data to get selected traits
+            for key, value in request.form.items():
+                if key.startswith('trait_category_') and value.isdigit():
+                    trait_category_id = int(key.split('_')[-1])
+                    captured_trait_id = int(value)
+                    captured_traits.append((user_id, trait_category_id, captured_trait_id))
 
-            # Capture introversion/extroversion trait
-            introversion_extroversion = request.form.get('introversion_extroversion')
+                # Insert selected traits into captured_traits table
             cursor = mysql.connection.cursor()
-            cursor.execute('''
-                            INSERT INTO user_traits (user_id, trait_id)
-                            VALUES (%s, %s)
-                        ''', (user_id, introversion_extroversion))
-            mysql.connection.commit()
-            cursor.close()
-
-
-            # insert traits into user_traits table
-            selected_traits = request.form.getlist('traits[]')
-            cursor = mysql.connection.cursor()
-            for trait_id in selected_traits:
-                cursor.execute('''
-                                INSERT INTO user_traits (user_id, trait_id)
-                                VALUES (%s, %s)
-                            ''', (user_id, trait_id))
+            cursor.executemany('''
+                            INSERT INTO captured_learner_traits (user_id, trait_category_id, captured_trait)
+                            VALUES (%s, %s, %s)
+                        ''', captured_traits)
             mysql.connection.commit()
             cursor.close()
 
@@ -178,12 +222,17 @@ def capture_traits():
     user_id = session.get('user_id')  # Assuming you store user_id in the session after login
     if user_id:
         cursor = mysql.connection.cursor()
-        cursor.execute('SELECT id, trait_name FROM in_built_traits ORDER BY id LIMIT 18446744073709551615 OFFSET 2')
-        traits = [{'trait_id': row['id'], 'trait_name': row['trait_name']} for row in cursor.fetchall()]
+        cursor.execute('SELECT * FROM trait_categories')
+        trait_categories = [
+            {'trait_id': row['id'], 'trait_category_name': row['trait_category_name'], 'question': row['learner_q']}
+            for row in cursor.fetchall()]
+        for trait_category in trait_categories:
+            cursor.execute('SELECT * FROM in_built_learner_traits WHERE trait_category = %s',
+                           (trait_category['trait_id'],))
+            traits = [{'trait_id': row['id'], 'trait_name': row['trait_name']} for row in cursor.fetchall()]
+            trait_category['traits'] = traits
         cursor.close()
-
-        return render_template('capture_traits.html', traits=traits)
-
+        return render_template('capture_traits.html', trait_categories=trait_categories)
     # If user_id is not available in the session
     return redirect(url_for('register'))
 
@@ -215,22 +264,71 @@ def instructor_on_boarding():
     return redirect(url_for('register'))
 
 
+# capture instructor traits
+
+@app.route('/capture_instructor_traits', methods=['GET', 'POST'])
+def capture_instructor_traits():
+    if request.method == 'POST':
+        age = request.form.get('age')
+        gender = request.form.get('gender')
+        language = request.form.get('language')
+
+        user_id = session.get('user_id')
+
+        if user_id:
+            # Update the users table with the submitted values
+            cursor = mysql.connection.cursor()
+            cursor.execute('''
+                UPDATE users
+                SET age = %s, gender = %s, language = %s
+                WHERE id = %s
+            ''', (age, gender, language, user_id))
+            mysql.connection.commit()
+
+            # Handle file upload
+            if 'pic' in request.files:
+                file = request.files['pic']
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    file.save(file_path)
+
+                    # Update the users table with the file name
+                    cursor.execute('''
+                        UPDATE users
+                        SET profile_pic_url = %s
+                        WHERE id = %s
+                    ''', (filename, user_id))
+                    mysql.connection.commit()
+
+            cursor.close()
 
 
-@app.route('/display_traits')
-def display_traits():
-    cursor = mysql.connection.cursor()
-    cursor.execute('SELECT * FROM trait_categories')
-    trait_categories = [{'trait_id': row['id'], 'trait_category_name': row['trait_category_name'], 'question': row['instructor_q']} for row in cursor.fetchall()]
+            # insert traits into captured traits
+            captured_traits = []
+            # Iterate over form data to get selected traits
+            for key, value in request.form.items():
+                if key.startswith('trait_category_') and value.isdigit():
+                    trait_category_id = int(key.split('_')[-1])
+                    captured_trait_id = int(value)
+                    captured_traits.append((user_id, trait_category_id, captured_trait_id))
 
-    for trait_category in trait_categories:
-        cursor.execute('SELECT * FROM in_built_instructor_traits WHERE trait_category = %s',
-                       (trait_category['trait_id'],))
-        traits = [{'trait_id': row['id'], 'trait_name': row['trait_name']} for row in cursor.fetchall()]
-        trait_category['traits'] = traits
+                # Insert selected traits into captured_traits table
+            cursor = mysql.connection.cursor()
+            cursor.executemany('''
+                            INSERT INTO captured_traits (user_id, trait_category_id, captured_trait)
+                            VALUES (%s, %s, %s)
+                        ''', captured_traits)
+            mysql.connection.commit()
+            cursor.close()
 
-    cursor.close()
-    return render_template('display_traits.html', trait_categories=trait_categories)
+
+            return redirect(url_for('success_page'))
+
+    # If user_id is not available in the session
+    return redirect(url_for('register'))
+
+
 
 
 
