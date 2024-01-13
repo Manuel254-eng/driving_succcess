@@ -48,7 +48,7 @@
                              </li>
                         {% else %}
                           <li class="nav-item mx-0 mx-lg-1">
-                            <a class="nav-link py-3 px-0 px-lg-3 rounded" href="/find-instructors">Find Instructors
+                            <a class="nav-link py-3 px-0 px-lg-3 rounded" href="/find_instructors">Find Instructors
                             </a>
                            </li>
                           <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/login">Login</a></li>
@@ -60,20 +60,20 @@
             </div>
         </nav>
         <!-- Masthead-->
-        <header class="masthead bg-primary text-white text-center">
-            <div class="container d-flex align-items-center flex-column">
+        <header class="masthead bg-primary text-white text-center" style=" background-image: url({{ url_for('static', filename='assets/img/back_ground.jpg') }})">
+            <div class="container d-flex align-items-center flex-column" style="background-color: rgba(238, 241, 244, 0.7);  color:#2C3E50; ">
                 <!-- Masthead Avatar Image-->
-                <img class="masthead-avatar mb-5" src="{{ url_for('static', filename='assets/img/wheel-control-in-color.png') }}"  alt="..." />
+<!--                 <img class="masthead-avatar mb-5" src="{{ url_for('static', filename='assets/img/wheel-control-in-color.png') }}"  alt="..." /> -->
                 <!-- Masthead Heading-->
                 <h1 class="masthead-heading text-uppercase mb-0">Driving lessons</h1>
                 <!-- Icon Divider-->
-                <div class="divider-custom divider-light">
+                <div class="divider-custom divider-dark" >
                     <div class="divider-custom-line"></div>
                     <div class="divider-custom-icon"><i class="fas fa-star"></i></div>
                     <div class="divider-custom-line"></div>
                 </div>
                 <!-- Masthead Subheading-->
-                <p class="masthead-subheading font-weight-light mb-0"> <a href="" class="btn btn-secondary">Find Instructors</a> </p>
+                <p class="masthead-subheading font-weight-light mb-0"> <a href="/find_instructors" class="btn btn-secondary">Find Instructors</a> </p>
             </div>
         </header>
         <!-- Portfolio Section-->

@@ -144,7 +144,7 @@
                             </select>
 
                             <label class="fieldlabels">Description: *</label>
-                            <textarea name="description"> </textarea>
+                            <textarea name="instructor_description"> </textarea>
                         </div>
                         <input type="button" name="next" class="next action-button" value="Next"/>
                     </fieldset>
@@ -161,12 +161,12 @@
                             <label class="fieldlabels">How many years of experience do you have as an instructor:</label>
                             <input type="number" name="instructor_experience" />
                             <label class="fieldlabels">Vehicle Transmission Type:</label>
-                            <select >
+                            <select  name="vehicle_transmission_type">
                             <option value="manual"> Manual </option>
                             <option value="automatic"> Automatic </option>
                             </select>
                             <label class="fieldlabels">Vehicle Category:</label>
-                            <select>
+                            <select name="vehicle_category">
                             <option value="sedan"> Sedan </option>
                             <option value="suv"> SUV </option>
                             <option value="suv"> Heavy commercial vehicle </option>
@@ -174,9 +174,9 @@
                             <label class="fieldlabels">Vehicle Model:</label>
                             <input type="text" name="vehicle_model" />
                             <label class="fieldlabels">Charges per session:</label>
-                            <input type="number" name="charges_per_session" />
+                            <input type="number" name="instructor_charges_per_session" />
                             <label class="fieldlabels">How many minutes per session:</label>
-                            <input type="number" name="minutes_per_session" />
+                            <input type="number" name="instructor_minutes_per_session" />
 
 
 
@@ -201,7 +201,7 @@
                                 <label class="fieldlabels">{{ trait_category.question }}*</label>
                                               {% for trait in trait_category.traits %}
                                                    <div class="form-check">
-                                                      <input class="form-check-input" type="radio" name="trait_category_{{ trait_category.trait_id }}" id="{{ trait.trait_id }}" value="{{ trait.trait_id }}" checked>
+                                                      <input class="form-check-input" type="radio" name="trait_category_{{ trait_category.trait_id }}" id="{{ trait.trait_id }}" value="{{ trait.trait_id }}" >
                                                       <label class="form-check-label" for="{{ trait.trait_id }}">
                                                          {{ trait.trait_name }}
                                                       </label>

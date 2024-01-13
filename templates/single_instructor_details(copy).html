@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Details</title>
+    <!-- Add any additional CSS or stylesheets here -->
+</head>
+<body>
+
+    <h1>Instructor Details</h1>
+
+    <div>
+        <img src="{{ url_for('static', filename='uploads/images/' + instructor.profile_pic_url) }}" alt="Instructor Image">
+    </div>
+
+    <h2>{{ instructor.first_name }} {{ instructor.last_name }}</h2>
+
+    <!-- Add more details about the instructor as needed -->
+    <p>Email: {{ instructor.email }}</p>
+    <p>Phone: {{ instructor.phone }}</p>
+    <!-- Add more fields as needed -->
+
+
+
+    <!-- Add any additional HTML or components as needed -->
+
+</body>
+</html>

@@ -129,12 +129,12 @@ def view_instructors():
             })
 
         # Render the template with the results
-        return render_template('view_instuructors.html', user_info=user_info, results=results)
+        return render_template('view_instructors.html', user_info=user_info, results=results)
 
         # Close the cursor
         cursor.close()
 
-        return render_template('view_instuructors.html', instructors=instructors, user_info=user_info, learner_traits=learner_traits)
+        return render_template('view_instructors.html', instructors=instructors, user_info=user_info, learner_traits=learner_traits)
 
 
 @app.route('/view_learner_traits')
@@ -331,7 +331,13 @@ def capture_instructor_traits():
         age = request.form.get('age')
         gender = request.form.get('gender')
         language = request.form.get('language')
-
+        instructor_description = request.form.get('instructor_description')
+        instructor_experience  = request.form.get('instructor_experience')
+        vehicle_transmission_type = request.form.get('vehicle_transmission_type')
+        vehicle_category = request.form.get('vehicle_category')
+        vehicle_model =  request.form.get('vehicle_model')
+        instructor_charges_per_session = request.form.get('instructor_charges_per_session')
+        instructor_minutes_per_session = request.form.get('instructor_minutes_per_session')
         user_id = session.get('user_id')
 
         if user_id:
@@ -362,6 +368,16 @@ def capture_instructor_traits():
 
             cursor.close()
 
+            # insert more instructor details
+            cursor = mysql.connection.cursor()
+            cursor.execute('''
+                INSERT INTO instructor_details (user_id, instructor_experience, instructor_charges, instructor_vehicle_transmission_type, instructor_vehicle_category, instructor_vehicle_model, instructor_description, instructor_mins_per_session)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ''', (user_id, instructor_experience, instructor_charges_per_session, vehicle_transmission_type, vehicle_category, vehicle_model, instructor_description, instructor_minutes_per_session ))
+            mysql.connection.commit()
+            cursor.close()
+
+
 
             # insert traits into captured traits
             captured_traits = []
@@ -389,14 +405,72 @@ def capture_instructor_traits():
 
 @app.route('/view_single_instructor_details/<int:instructor_id>')
 def view_single_instructor_details(instructor_id):
-    cursor = mysql.connection.cursor()
-    cursor.execute('SELECT * FROM users WHERE id = %s', (instructor_id,))
-    instructor = cursor.fetchone()
-    cursor.close()
+    user_id = session.get('user_id')
+    user_info = None
+    if user_id:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM users WHERE id = %s', (instructor_id,))
+        instructor = cursor.fetchone()
+        cursor.close()
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM instructor_details WHERE user_id = %s', (instructor_id,))
+        instructor_details = cursor.fetchone()
+        cursor.close()
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+        user_info = cursor.fetchone()
+        role = user_info['role']
+        cursor.close()
+        if role == 'learner':
+            return render_template('single_instructor_details.html', instructor=instructor, user_info=user_info, instructor_details=instructor_details)
+        else:
+            return render_template('instructor_dashboard.html')
+    return render_template('login.html')
 
-    # You may want to fetch additional information related to the instructor
+@app.route('/find_instructors',  methods=['GET', 'POST'])
+def find_instructors():
+    user_id = session.get('user_id')
+    user_info = None
 
-    return render_template('single_instructor_details.html', instructor=instructor)
+    if user_id:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+        user_info = cursor.fetchone()
+        cursor.close()
+        if request.method == 'POST':
+            vehicle_transmission_type = request.form.get('vehicle_transmission_type')
+            vehicle_category = request.form.get('vehicle_category')
+            experience = request.form.get(' experience')
+            charges_max = request.form.get('charges_max')
+            min_experience = 0
+            max_experience = 100
+            if experience == 'zero':
+                min_experience = 0
+                max_experience = 1
+            if experience == 'one-to-five':
+                min_experience = 1
+                max_experience = 5
+            elif experience == 'six-to-nine':
+                min_experience = 6
+                max_experience = 9
+            elif experience == 'ten-plus':
+                min_experience = 10
+
+            cursor = mysql.connection.cursor()
+            query = (
+                'SELECT * FROM instructor_details '
+                'WHERE instructor_charges <= %s AND instructor_vehicle_transmission_type = %s '
+                'AND instructor_vehicle_category = %s AND instructor_experience BETWEEN %s AND %s'
+            )
+            cursor.execute(query,
+                           (charges_max, vehicle_transmission_type, vehicle_category, min_experience, max_experience))
+            instructor_details = cursor.fetchone()
+            cursor.close()
+            return render_template('view_instructors.html', instructor_details=instructor_details)
+
+        return render_template('find_instructors.html', user_info=user_info)
+    return render_template('find_instructors.html')
+
 
 
 
