@@ -73,6 +73,7 @@ def home():
 
             # Append results for this instructor
             results.append({
+                'instructor_id': f"{instructor['id']} ",
                 'instructor_name': f"{instructor['first_name']} {instructor['last_name']}",
                 'profile_pic_url': f"{instructor['profile_pic_url']} ",
                 'similarity_percentage': similarity_percentage
@@ -295,7 +296,9 @@ def capture_traits():
 @app.route('/success_page', methods=['GET', 'POST'])
 def success_page():
     return render_template('capture_success.html')
-
+@app.route('/instructor_success_page', methods=['GET', 'POST'])
+def instructor_success_page():
+    return render_template('capture_instructor_success.html')
 
 # Instructor onboarding
 @app.route('/instructor_on_boarding', methods=['GET', 'POST'])
@@ -379,12 +382,21 @@ def capture_instructor_traits():
             cursor.close()
 
 
-            return redirect(url_for('success_page'))
+            return redirect(url_for('instructor_success_page'))
 
     # If user_id is not available in the session
     return redirect(url_for('register'))
 
+@app.route('/view_single_instructor_details/<int:instructor_id>')
+def view_single_instructor_details(instructor_id):
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT * FROM users WHERE id = %s', (instructor_id,))
+    instructor = cursor.fetchone()
+    cursor.close()
 
+    # You may want to fetch additional information related to the instructor
+
+    return render_template('single_instructor_details.html', instructor=instructor)
 
 
 
