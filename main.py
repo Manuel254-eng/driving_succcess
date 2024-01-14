@@ -85,20 +85,26 @@ def home():
 
     return render_template('index.html', user_info=user_info)
 
-@app.route('/view_instructors')
+@app.route('/view_instructors', methods=['GET', 'POST'])
 def view_instructors():
     user_id = session.get('user_id')
     user_info = None
+
     if user_id:
-        # Fetch user information
         cursor = mysql.connection.cursor()
         cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
         user_info = cursor.fetchone()
         cursor.close()
 
-        # Fetch instructors
+        # Fetch instructors with additional information from instructor_details
         cursor = mysql.connection.cursor()
-        cursor.execute('SELECT * FROM users WHERE role = %s', ('instructor',))
+        query = '''
+            SELECT users.*, instructor_details.*
+            FROM users
+            INNER JOIN instructor_details ON users.id = instructor_details.user_id
+            WHERE users.role = %s
+        '''
+        cursor.execute(query, ('instructor',))
         instructors = cursor.fetchall()
 
         # Fetch captured traits for the user
@@ -118,23 +124,106 @@ def view_instructors():
 
             # Perform similarity check
             similarity_count = sum(1 for user_trait in learner_traits for instructor_trait in instructor_traits
-                                  if user_trait['trait_category_id'] == instructor_trait['trait_category_id']
-                                  and user_trait['captured_trait'] == instructor_trait['captured_trait'])
-            similarity_count = round(similarity_count /13 * 100)
+                                   if user_trait['trait_category_id'] == instructor_trait['trait_category_id']
+                                   and user_trait['captured_trait'] == instructor_trait['captured_trait'])
+            similarity_percentage = round(similarity_count / 13 * 100)
 
             # Append results for this instructor
             results.append({
+                'instructor_id': f"{instructor['id']} ",
                 'instructor_name': f"{instructor['first_name']} {instructor['last_name']}",
-                'similarity_count': similarity_count
+                'profile_pic_url': f"{instructor['profile_pic_url']} ",
+                'similarity_percentage': similarity_percentage
             })
+            results = sorted(results, key=lambda x: x['similarity_percentage'], reverse=True)
 
-        # Render the template with the results
+        # Move the return statement outside of the loop
         return render_template('view_instructors.html', user_info=user_info, results=results)
 
-        # Close the cursor
-        cursor.close()
+    return render_template('view_instructors.html', user_info=user_info)
 
-        return render_template('view_instructors.html', instructors=instructors, user_info=user_info, learner_traits=learner_traits)
+@app.route('/filter_instructors', methods=['GET', 'POST'])
+def filter_instructors():
+    user_info = None
+    if request.method == 'POST':
+        vehicle_transmission_type = request.form.get('vehicle_transmission_type')
+        vehicle_category = request.form.get('vehicle_category')
+        experience = request.form.get('experience')
+        charges_max = request.form.get('charges_max')
+
+        min_experience = 0
+        max_experience = 100
+
+        if experience == 'zero':
+            max_experience = 1
+        elif experience == 'one-to-five':
+            min_experience, max_experience = 1, 5
+        elif experience == 'six-to-nine':
+            min_experience, max_experience = 6, 9
+        elif experience == 'ten-plus':
+            min_experience = 10
+
+        user_id = session.get('user_id')
+        if user_id:
+            cursor = mysql.connection.cursor()
+            cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+            user_info = cursor.fetchone()
+            cursor.close()
+            # perform filtering from the search From
+            cursor = mysql.connection.cursor()
+            query = '''
+                    SELECT users.*, instructor_details.*
+                    FROM users
+                    INNER JOIN instructor_details ON users.id = instructor_details.user_id
+                    WHERE users.role = %s
+                        AND instructor_details.instructor_charges <= %s
+                        AND instructor_details.instructor_vehicle_transmission_type = %s
+                        AND instructor_details.instructor_vehicle_category = %s
+                        AND instructor_details.instructor_experience BETWEEN %s AND %s
+                '''
+            cursor.execute(query, (
+            'instructor', charges_max, vehicle_transmission_type, vehicle_category, min_experience, max_experience))
+            instructors = cursor.fetchall()
+
+            # Fetch captured traits for the user
+            cursor.execute('SELECT * FROM captured_learner_traits WHERE user_id = %s', (user_id,))
+            learner_traits = cursor.fetchall()
+
+            # Prepare a list to store the results
+            results = []
+
+            # Calculate and store the similarity count for each instructor
+            for instructor in instructors:
+                # Fetch captured traits for each instructor
+                cursor = mysql.connection.cursor()
+                cursor.execute('SELECT * FROM captured_traits WHERE user_id = %s', (instructor['id'],))
+                instructor_traits = cursor.fetchall()
+                cursor.close()
+
+                # Perform similarity check
+                similarity_count = sum(1 for user_trait in learner_traits for instructor_trait in instructor_traits
+                                       if user_trait['trait_category_id'] == instructor_trait['trait_category_id']
+                                       and user_trait['captured_trait'] == instructor_trait['captured_trait'])
+                similarity_percentage = round(similarity_count / 13 * 100)
+
+                # Append results for this instructor
+                results.append({
+                    'instructor_id': f"{instructor['id']} ",
+                    'instructor_name': f"{instructor['first_name']} {instructor['last_name']}",
+                    'profile_pic_url': f"{instructor['profile_pic_url']} ",
+                    'similarity_percentage': similarity_percentage
+                })
+
+            # Move the sorting outside the loop
+            results = sorted(results, key=lambda x: x['similarity_percentage'], reverse=True)
+
+            # Move the return statement outside of the loop
+            return render_template('view_instructors.html', user_info=user_info, results=results)
+
+    return render_template('view_instructors.html', user_info=user_info)
+
+
+
 
 
 @app.route('/view_learner_traits')
@@ -437,39 +526,9 @@ def find_instructors():
         cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
         user_info = cursor.fetchone()
         cursor.close()
-        if request.method == 'POST':
-            vehicle_transmission_type = request.form.get('vehicle_transmission_type')
-            vehicle_category = request.form.get('vehicle_category')
-            experience = request.form.get(' experience')
-            charges_max = request.form.get('charges_max')
-            min_experience = 0
-            max_experience = 100
-            if experience == 'zero':
-                min_experience = 0
-                max_experience = 1
-            if experience == 'one-to-five':
-                min_experience = 1
-                max_experience = 5
-            elif experience == 'six-to-nine':
-                min_experience = 6
-                max_experience = 9
-            elif experience == 'ten-plus':
-                min_experience = 10
-
-            cursor = mysql.connection.cursor()
-            query = (
-                'SELECT * FROM instructor_details '
-                'WHERE instructor_charges <= %s AND instructor_vehicle_transmission_type = %s '
-                'AND instructor_vehicle_category = %s AND instructor_experience BETWEEN %s AND %s'
-            )
-            cursor.execute(query,
-                           (charges_max, vehicle_transmission_type, vehicle_category, min_experience, max_experience))
-            instructor_details = cursor.fetchone()
-            cursor.close()
-            return render_template('view_instructors.html', instructor_details=instructor_details)
 
         return render_template('find_instructors.html', user_info=user_info)
-    return render_template('find_instructors.html')
+    return render_template('view_all_instructors.html')
 
 
 

@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>Driving Lessons</title>
+        <title>Driving Instructor matching system</title>
         <!-- Favicon-->
         <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
@@ -17,19 +17,119 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
     </head>
     <body id="page-top">
-    {% if user_info %}
-    {{ user_info.username }}
-    {% endif %}
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg bg-secondary text-uppercase fixed-top" id="mainNav">
+            <div class="container">
+                <a class="navbar-brand" href="#page-top">DRIVING SUCCESS</a>
+                <button class="navbar-toggler text-uppercase font-weight-bold bg-primary text-white rounded" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto">
+                        {% if user_info %}
+                           <!-- Display username if logged in -->
+                           <li class="nav-item dropdown">
+                                   <a class="nav-link py-3 px-0 px-lg-3 rounded dropdown-toggle" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="color: white;">
+                                        {% if user_info.profile_pic_url %}
+                                            <img src="{{ url_for('static', filename='uploads/images/' + user_info.profile_pic_url) }}" alt="..." class="rounded-circle" style="width: 40px; height: 40px;">
+                                         {% else %}
+                                             <img src="{{ url_for('static', filename='uploads/images/default_pic.png') }}" alt="..." class="rounded-circle" style="width: 40px; height: 40px;">
+                                         {% endif %}
+                                      {{ user_info.username }}
+                                   </a>
+                               <div class="dropdown-menu" aria-labelledby="userDropdown">
+                                  <!-- Add other dropdown items as needed -->
+                                   <a class="dropdown-item" href="#">Profile</a>
+                                   <a class="dropdown-item" href="#">Settings</a>
+                                   <div class="dropdown-divider"></div>
+                                   <a class="dropdown-item" href="/logout">Logout</a>
+                               </div>
+                             </li>
+                        {% else %}
+                          <li class="nav-item mx-0 mx-lg-1">
+                            <a class="nav-link py-3 px-0 px-lg-3 rounded" href="/find_instructors">Find Instructors
+                            </a>
+                           </li>
+                          <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/login">Login</a></li>
+                          <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/register">Register</a></li>
+                        {% endif %}
 
-<section>
-    <h2>Instructor Similarity:</h2>
-    {% for instructor_detail in instructor_details %}
-                <tr>
-                    <td>{{ instructor_detail.user_id }}</td>
-                </tr>
-            {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Masthead-->
 
-</section>
+        <!-- Portfolio Section-->
+        <section class="page-section portfolio" id="topInstructors">
+        <br/> <br/>
+            <div class="container">
+                <!-- Portfolio Section Heading-->
+                <h2 class="page-section-heading text-center text-uppercase text-secondary mb-0">Instructors</h2>
+                <!-- Portfolio Grid Items-->
+                <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th> #</th>
+                        <th>Pic</th>
+                        <th>Name </th>
+                        <th>Match %</th>
+                        <th>Action</th>
 
+                    </tr>
+                </thead>
+                 {% for result in results %}
+                     <tr> 
+                        <td> # </td>
+                        <td>
+                            {% if result.profile_pic_url %}
+                                {% if result.profile_pic_url|default('none')|trim|lower == 'none' %}
+                                <img  src="{{ url_for('static', filename='assets/img/portfolio/instructor-1.png') }}"  alt="..." class="rounded-circle" style="width: 40px; height: 40px;"/>
+                                {% else %}
+                                <img src="{{ url_for('static', filename='uploads/images/' + result.profile_pic_url) }}" alt="..." class="rounded-circle" style="width: 40px; height: 40px;" >
+                                {% endif %}
+                            {% else %}
+                                 <img class="img-fluid" src="{{ url_for('static', filename='assets/img/portfolio/instructor-1.png') }}"  alt="..." />
+                            {% endif %} 
+                        </td>
+                        <td> {{ result.instructor_name }} </td>
+                        <td> {{ result.similarity_percentage }} %  </td>
+                        <td> <a href="{{ url_for('view_single_instructor_details', instructor_id=result.instructor_id) }}" class="btn btn-primary"> View</a> </td>
+                     </tr>
+
+
+
+                {% endfor %}
+                </table>
+
+
+
+
+
+        </section>
+       
+        <!-- Footer-->
+        <footer class="footer text-center">
+            <div class="container">
+                <div class="row">
+
+
+
+
+                </div>
+            </div>
+        </footer>
+        <!-- Copyright Section-->
+        <div class="copyright py-4 text-center text-white">
+            <div class="container"><small>Copyright &copy; Your Website 2023</small></div>
+        </div>
+
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+
+        <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
     </body>
 </html>
