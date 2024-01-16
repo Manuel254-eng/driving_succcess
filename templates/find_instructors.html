@@ -20,7 +20,7 @@
         <!-- Navigation-->
         <nav class="navbar navbar-expand-lg bg-secondary text-uppercase fixed-top" id="mainNav">
             <div class="container">
-                <a class="navbar-brand" href="#page-top">DRIVING SUCCESS</a>
+                <a class="navbar-brand" href="/">DRIVING SUCCESS</a>
                 <button class="navbar-toggler text-uppercase font-weight-bold bg-primary text-white rounded" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
                     Menu
                     <i class="fas fa-bars"></i>
@@ -40,8 +40,12 @@
                                    </a>
                                <div class="dropdown-menu" aria-labelledby="userDropdown">
                                   <!-- Add other dropdown items as needed -->
-                                   <a class="dropdown-item" href="#">Profile</a>
-                                   <a class="dropdown-item" href="#">Settings</a>
+                                   <a class="dropdown-item" href="/profile">Profile</a>
+                                   {% if user_info.role == 'instructor' %}
+                                   <a class="dropdown-item" href="/instructor_dashboard">Appointments</a>
+                                   {% else %}
+                                   <a class="dropdown-item" href="/learner_dashboard">Appointments</a>
+                                   {% endif %}
                                    <div class="dropdown-divider"></div>
                                    <a class="dropdown-item" href="/logout">Logout</a>
                                </div>
@@ -160,7 +164,7 @@
         </footer>
         <!-- Copyright Section-->
         <div class="copyright py-4 text-center text-white">
-            <div class="container"><small>Copyright &copy; Your Website 2023</small></div>
+            <div class="container"><small>Copyright &copy; Driving success 2024</small></div>
         </div>
         <script>
     // Display the selected value dynamically

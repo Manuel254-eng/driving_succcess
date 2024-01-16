@@ -94,6 +94,17 @@ def home():
 def view_instructors():
     user_id = session.get('user_id')
     user_info = None
+    # Fetch instructors with additional information from instructor_details
+    cursor = mysql.connection.cursor()
+    query = '''
+        SELECT users.*, instructor_details.*
+        FROM users
+        INNER JOIN instructor_details ON users.id = instructor_details.user_id
+        WHERE users.role = %s
+    '''
+    cursor.execute(query, ('instructor',))
+    instructors = cursor.fetchall()
+    cursor.close()
 
     if user_id:
         cursor = mysql.connection.cursor()
@@ -101,17 +112,7 @@ def view_instructors():
         user_info = cursor.fetchone()
         cursor.close()
 
-        # Fetch instructors with additional information from instructor_details
         cursor = mysql.connection.cursor()
-        query = '''
-            SELECT users.*, instructor_details.*
-            FROM users
-            INNER JOIN instructor_details ON users.id = instructor_details.user_id
-            WHERE users.role = %s
-        '''
-        cursor.execute(query, ('instructor',))
-        instructors = cursor.fetchall()
-
         # Fetch captured traits for the user
         cursor.execute('SELECT * FROM captured_learner_traits WHERE user_id = %s', (user_id,))
         learner_traits = cursor.fetchall()
@@ -145,7 +146,7 @@ def view_instructors():
         # Move the return statement outside of the loop
         return render_template('view_instructors.html', user_info=user_info, results=results)
 
-    return render_template('view_instructors.html', user_info=user_info)
+    return render_template('view_instructors.html', user_info=user_info, instructors=instructors)
 
 @app.route('/filter_instructors', methods=['GET', 'POST'])
 def filter_instructors():
@@ -522,8 +523,8 @@ def view_single_instructor_details(instructor_id):
         if role == 'learner':
             return render_template('single_instructor_details.html', instructor=instructor, user_info=user_info, instructor_details=instructor_details)
         else:
-            return render_template('instructor_dashboard.html')
-    return render_template('login.html')
+            return render_template('instructor_dashboard.html', error='This action is only available to learner accounts')
+    return render_template('login.html', error='Please log in to view instructor details')
 
 @app.route('/find_instructors',  methods=['GET', 'POST'])
 def find_instructors():
@@ -537,7 +538,7 @@ def find_instructors():
         cursor.close()
 
         return render_template('find_instructors.html', user_info=user_info)
-    return render_template('view_all_instructors.html')
+    return redirect(url_for('view_instructors'))
 
 @app.route('/instructor_dashboard', methods=['GET', 'POST'])
 def instructor_dashboard():
