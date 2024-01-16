@@ -1,49 +1,44 @@
-@app.route('/find_instructors',  methods=['GET', 'POST'])
-def find_instructors():
-    user_id = session.get('user_id')
-    user_info = None
+@app.route('/book_appointment', methods=['POST'])
+def book_appointment():
+    if request.method == 'POST':
+        try:
+            learner_id = request.form.get('learner_id')
+            instructor_id = request.form.get('instructor_id')
+            appointment_date_time = request.form.get('appointment_date_time')
 
-    if user_id:
-        cursor = mysql.connection.cursor()
-        cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
-        user_info = cursor.fetchone()
-        cursor.close()
-        if request.method == 'POST':
-            vehicle_transmission_type = request.form.get('vehicle_transmission_type')
-            vehicle_category = request.form.get('vehicle_category')
-            experience = request.form.get('experience')
-            charges_max = request.form.get('charges_max')
-            min_experience = 0
-            max_experience = 100
-            if experience == 'zero':
-                min_experience = 0
-                max_experience = 1
-            if experience == 'one-to-five':
-                min_experience = 1
-                max_experience = 5
-            elif experience == 'six-to-nine':
-                min_experience = 6
-                max_experience = 9
-            elif experience == 'ten-plus':
-                min_experience = 10
+            # Calculate the end time of the proposed appointment
+            proposed_end_time = (datetime.datetime.strptime(appointment_date_time, '%Y-%m-%d %H:%M') + timedelta(
+                hours=2)).strftime('%Y-%m-%d %H:%M')
 
+            # Check if the appointment_date_time overlaps with existing appointments for the instructor
             cursor = mysql.connection.cursor()
-            query = (
-                'SELECT * FROM instructor_details '
-                'WHERE instructor_charges <= %s AND instructor_vehicle_transmission_type = %s '
-                'AND instructor_vehicle_category = %s AND instructor_experience BETWEEN %s AND %s'
-            )
-            cursor.execute(query,
-                           (charges_max, vehicle_transmission_type, vehicle_category, min_experience, max_experience))
-            instructor_details = cursor.fetchall()
+            cursor.execute('''
+                SELECT * FROM appointments 
+                WHERE instructor_id = %s 
+                AND (appointment_date_time < %s AND %s < (appointment_date_time + INTERVAL 2 HOUR))
+            ''', (instructor_id, proposed_end_time, appointment_date_time))
+
+            existing_appointment = cursor.fetchone()
             cursor.close()
-            for instructor_detail in instructor_details:
-                cursor = mysql.connection.cursor()
-                cursor.execute('SELECT * FROM users WHERE id = %s', (instructor_detail['user_id'],))
-                filtered_instructors = cursor.fetchall()
-                cursor.close()
 
-            return render_template('view_instructors.html', instructor_details=instructor_details, filtered_instructors=filtered_instructors)
+            if existing_appointment:
+                flash("The instructor already has another appointment during that time. Please select another time.",
+                      "error")
+                return redirect(url_for('view_single_instructor_details'))
 
-        return render_template('find_instructors.html', user_info=user_info)
-    return render_template('view_all_instructors.html')
+            # If no existing appointment, proceed with inserting the new appointment
+            cursor = mysql.connection.cursor()
+            cursor.execute('''
+                INSERT INTO appointments (learner_id, instructor_id, appointment_date_time)
+                VALUES (%s, %s, %s)
+            ''', (learner_id, instructor_id, appointment_date_time))
+
+            mysql.connection.commit()
+            cursor.close()
+
+            flash("Appointment booked successfully", "success")
+            return redirect(url_for('learner_dashboard'))
+        except Exception as e:
+            flash(f"An error occurred: {str(e)}", "error")
+
+    return redirect(url_for('home'))

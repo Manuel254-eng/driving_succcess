@@ -1,10 +1,11 @@
 import os
 
-from flask import Flask, render_template, request, redirect, session, url_for, make_response
+from flask import Flask, render_template, request, redirect, session, url_for, make_response, flash
 from flask_mysqldb import MySQL
 from passlib.hash import sha256_crypt
 from werkzeug.utils import secure_filename
-
+from datetime import datetime, timedelta
+import MySQLdb
 app = Flask(__name__)
 
 app.config['MYSQL_HOST'] = 'localhost'
@@ -36,6 +37,10 @@ with app.app_context():
 
 @app.route('/')
 def home():
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT * FROM users WHERE role = %s  LIMIT 6', ('instructor',))
+    instructors = cursor.fetchall()
+    cursor.close()
     user_id = session.get('user_id')
     user_info = None
 
@@ -83,7 +88,7 @@ def home():
         # Move the return statement outside of the loop
         return render_template('index.html', user_info=user_info, results=results)
 
-    return render_template('index.html', user_info=user_info)
+    return render_template('index.html', user_info=user_info,instructors=instructors)
 
 @app.route('/view_instructors', methods=['GET', 'POST'])
 def view_instructors():
@@ -282,14 +287,18 @@ def login():
         password_candidate = request.form.get('password')
 
         cursor = mysql.connection.cursor()
-        cursor.execute('SELECT id, password FROM users WHERE email = %s', (email,))
+        cursor.execute('SELECT id, password, role FROM users WHERE email = %s', (email,))
         user = cursor.fetchone()
         cursor.close()
 
         if user and sha256_crypt.verify(password_candidate, user['password']):
             # Password is correct, log in the user
             session['user_id'] = user['id']
-            return redirect(url_for('home'))
+            role = user['role']
+            if role == "instructor":
+                return redirect(url_for('instructor_dashboard'))
+            else:
+                return redirect(url_for('home'))
         else:
             # Invalid credentials, show an error message or redirect to the login page
             return render_template('login.html', error='Invalid email or password')
@@ -530,8 +539,211 @@ def find_instructors():
         return render_template('find_instructors.html', user_info=user_info)
     return render_template('view_all_instructors.html')
 
+@app.route('/instructor_dashboard', methods=['GET', 'POST'])
+def instructor_dashboard():
+    user_id = session.get('user_id')
+    user_info = None
+
+    if user_id:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+        user_info = cursor.fetchone()
+        cursor.close()
+        cursor = mysql.connection.cursor()
+        cursor.execute('''
+                SELECT appointments.*, users.*
+                FROM appointments
+                JOIN users ON appointments.learner_id = users.id
+                WHERE instructor_id = %s
+            ''', (user_id,))
+        instructor_appointments = cursor.fetchall()
+        cursor.close()
+        return render_template('instructor_dashboard.html', user_info=user_info, instructor_appointments=instructor_appointments)
+
+    return redirect(url_for('login'))
 
 
+@app.route('/book_appointment', methods=['POST'])
+def book_appointment():
+    if request.method == 'POST':
+        learner_id = request.form.get('learner_id')
+        instructor_id = request.form.get('instructor_id')
+        appointment_date_time_str = request.form.get('appointment_date_time')
+
+        # Convert the input string to a datetime object
+        appointment_date_time = datetime.strptime(appointment_date_time_str, '%Y-%m-%dT%H:%M')
+
+        # Calculate the end time of the appointment (assuming each appointment takes 2 hours)
+        appointment_end_time = appointment_date_time + timedelta(hours=2)
+
+        # Check if the appointment time slot is available for the instructor
+        cursor = mysql.connection.cursor()
+        cursor.execute('''
+                        SELECT * FROM appointments
+                        WHERE instructor_id = %s
+                        AND ((%s >= appointment_date_time AND %s < DATE_ADD(appointment_date_time, INTERVAL 2 HOUR))
+                             OR (%s > appointment_date_time AND %s <= appointment_date_time))
+                    ''', (instructor_id, appointment_date_time, appointment_date_time,
+                          appointment_date_time, appointment_date_time))
+
+        existing_appointment = cursor.fetchone()
+
+        if existing_appointment:
+            flash("Appointment time slot is already booked for the selected date and time", "danger")
+            cursor.close()
+            return redirect(url_for('view_single_instructor_details', instructor_id=instructor_id))
+        else:
+            cursor = mysql.connection.cursor()
+            # If the time slot is available, insert the new appointment
+            cursor.execute('''
+                            INSERT INTO appointments (learner_id, instructor_id, appointment_date_time)
+                            VALUES (%s, %s, %s)
+                        ''', (learner_id, instructor_id, appointment_date_time))
+
+            mysql.connection.commit()
+            flash("Appointment booked successfully", "success")
+            cursor.close()
+            return redirect(url_for('learner_dashboard'))
+    return redirect(url_for('home'))
+
+
+@app.route('/update_appointment_status_instructor', methods=['POST'])
+def update_appointment_status():
+    if request.method == 'POST':
+        learner_id = request.form.get('learner_id')
+        instructor_id = int(request.form.get('instructor_id'))
+        appointment_date_time_str = request.form.get('appointment_date_time')
+        submitted_action = request.form.get('submit')
+        print(instructor_id)
+
+        # Determine the new state based on the submitted action
+        new_state = 1 if submitted_action == "Approve" else 2
+
+        user_id = int(session.get('user_id'))
+        print(user_id)
+        if user_id == instructor_id:
+            try:
+                # Convert the input string to a datetime object
+                appointment_date_time = datetime.strptime(appointment_date_time_str, '%Y-%m-%dT%H:%M')
+
+                # Update the appointments table's state where the row matches the submitted data
+                cursor = mysql.connection.cursor()
+                cursor.execute('''
+                                UPDATE appointments
+                                SET status = %s
+                                WHERE learner_id = %s
+                                  AND instructor_id = %s
+                                  AND appointment_date_time = %s
+                            ''', (new_state, learner_id, instructor_id, appointment_date_time))
+
+                mysql.connection.commit()
+                cursor.close()
+
+                # Flash message based on the new state
+                if new_state == 1:
+                    flash("Appointment approved successfully", "success")
+                else:
+                    flash("Appointment cancelled successfully", "success")
+
+                return redirect(url_for('instructor_dashboard'))
+            except Exception as e:
+                flash(f"Error updating appointment status: {str(e)}", "error")
+                return redirect(url_for('instructor_dashboard'))
+
+        flash("You do not have the rights to perform this action", "error")
+        return redirect(url_for('instructor_dashboard'))
+
+    flash("Something went wrong", "error")
+    return redirect(url_for('instructor_dashboard'))
+
+
+
+@app.route('/learner_dashboard', methods=['GET', 'POST'])
+def learner_dashboard():
+    user_id = session.get('user_id')
+    user_info = None
+
+    if user_id:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+        user_info = cursor.fetchone()
+        cursor.close()
+        cursor = mysql.connection.cursor()
+        cursor.execute('''
+            SELECT appointments.*, users.*
+            FROM appointments
+            JOIN users ON appointments.instructor_id = users.id
+            WHERE learner_id = %s
+        ''', (user_id,))
+        learner_appointments = cursor.fetchall()
+        cursor.close()
+        return render_template('learner_dashboard.html', user_info=user_info, learner_appointments=learner_appointments)
+
+    return redirect(url_for('login'))
+
+@app.route('/update_appointment_status_learner', methods=['POST'])
+def update_appointment_status_leaner():
+    if request.method == 'POST':
+        learner_id = int(request.form.get('learner_id'))
+        instructor_id = int(request.form.get('instructor_id'))
+        appointment_date_time_str = request.form.get('appointment_date_time')
+        submitted_action = request.form.get('submit')
+        print(learner_id)
+
+        # Determine the new state based on the submitted action
+        new_state = 1 if submitted_action == "Approve" else 2
+
+        user_id = int(session.get('user_id'))
+        print(user_id)
+        if user_id == learner_id:
+            try:
+                # Convert the input string to a datetime object
+                appointment_date_time = datetime.strptime(appointment_date_time_str, '%Y-%m-%dT%H:%M')
+
+                # Update the appointments table's state where the row matches the submitted data
+                cursor = mysql.connection.cursor()
+                cursor.execute('''
+                                UPDATE appointments
+                                SET status = %s
+                                WHERE learner_id = %s
+                                  AND instructor_id = %s
+                                  AND appointment_date_time = %s
+                            ''', (new_state, learner_id, instructor_id, appointment_date_time))
+
+                mysql.connection.commit()
+                cursor.close()
+
+                # Flash message based on the new state
+                if new_state == 1:
+                    flash("Appointment approved successfully", "success")
+                else:
+                    flash("Appointment cancelled successfully", "success")
+
+                return redirect(url_for('learner_dashboard'))
+            except Exception as e:
+                flash(f"Error updating appointment status: {str(e)}", "error")
+                return redirect(url_for('learner_dashboard'))
+
+        flash("You do not have the rights to perform this action", "error")
+        return redirect(url_for('learner_dashboard'))
+
+    flash("Something went wrong", "error")
+    return redirect(url_for('learner_dashboard'))
+
+
+@app.route('/profile')
+def view_profile():
+    user_id = session.get('user_id')
+    user_info = None
+
+    if user_id:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+        user_info = cursor.fetchone()
+        cursor.close()
+
+
+    return render_template('profile.html', user_info=user_info)
 
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
