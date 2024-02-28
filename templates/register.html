@@ -14,7 +14,7 @@
 	<div class="page-content">
 		<div class="form-v8-content">
 			<div class="form-left">
-				<img src="https://www.shutterstock.com/image-photo/happy-biracial-sisters-sitting-car-600nw-2285535645.jpg" alt="form">
+				<img src="{{ url_for('static', filename='assets/img/driving-cartoon2.jpg') }}" alt="form">
 			</div>
 			<div class="form-right">
 			<h2 style="text-align: center;"> SIGN UP </h2>
@@ -78,7 +78,7 @@
 						<div class="form-row-last">
 							<input type="submit" name="register" class="register" value="Register">
 						</div>
-						<a href="sign-in">Already have an account?Sign in</a>
+						<a href="login">Already have an account?Sign in</a>
 					</div>
 				</form>
 				<form class="form-detail" action="register" method="post">
@@ -133,7 +133,7 @@
 						<div class="form-row-last">
 							<input type="submit" name="register" class="register" value="Register">
 						</div>
-						<a href="login">Already have an account?Sign in</a>
+						<a href="/login">Already have an account?Sign in</a>
 					</div>
 				</form>
 

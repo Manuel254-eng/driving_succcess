@@ -317,8 +317,10 @@ background-color: #6AD3BF;
                         <tr>
                             <th>Instructor</th>
                             <th>Appointment Time</th>
+                            <th>Charges</th>
                             <th>Status</th>
                             <th>Action</th>
+                            <th></th>
                         </tr>
                         {% for learner_appointment in learner_appointments %}
                         <tr>
@@ -326,9 +328,14 @@ background-color: #6AD3BF;
                         {{ learner_appointment.first_name }}
                         {{ learner_appointment.last_name }}
                         </td>
+
                         <td>
                         {{ learner_appointment.appointment_date_time.strftime('%b %dth %Y at %H:%M hours') }}
-                        </td><td>
+                        </td>
+                        <td>
+                        {{ learner_appointment.instructor_charges }}
+                        </td>
+                        <td>
                         {% if learner_appointment.status == 0 %}
                            Pending
                         {% elif learner_appointment.status == 1 %}
@@ -339,6 +346,8 @@ background-color: #6AD3BF;
                             Unknown Status
                         {% endif %}
                         </td>
+
+
                         <td>
                          <form action="update_appointment_status_learner" method="post">
                         <input type="number" value="{{learner_appointment.learner_id}}" name="learner_id" hidden>
@@ -347,8 +356,14 @@ background-color: #6AD3BF;
                        {% if learner_appointment.status in [0, 1] %}
                        <input type="submit" class="btn btn-danger" name="submit" value="Cancel">
                        {% endif %}
+                       </td>
+                       <td>
+                        <a class="btn btn-primary" href="{{ url_for('view_single_instructor_details', instructor_id=learner_appointment.instructor_id) }}">View</a>
+                        </td>
+
                         </form>
                         </tr>
+
                         {% endfor %}
 
                     </table>

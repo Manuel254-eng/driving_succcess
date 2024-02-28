@@ -5,6 +5,7 @@ from flask_mysqldb import MySQL
 from passlib.hash import sha256_crypt
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
+import secrets
 import MySQLdb
 app = Flask(__name__)
 
@@ -49,34 +50,22 @@ def home():
         cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
         user_info = cursor.fetchone()
         cursor.close()
-
-        # Fetch instructors
         cursor = mysql.connection.cursor()
         cursor.execute('SELECT * FROM users WHERE role = %s  LIMIT 6', ('instructor',))
         instructors = cursor.fetchall()
-
-        # Fetch captured traits for the user
         cursor.execute('SELECT * FROM captured_learner_traits WHERE user_id = %s', (user_id,))
         learner_traits = cursor.fetchall()
-
-        # Prepare a list to store the results
         results = []
-
-        # Calculate and store the similarity count for each instructor
         for instructor in instructors:
-            # Fetch captured traits for each instructor
             cursor = mysql.connection.cursor()
             cursor.execute('SELECT * FROM captured_traits WHERE user_id = %s', (instructor['id'],))
             instructor_traits = cursor.fetchall()
             cursor.close()
-
             # Perform similarity check
             similarity_count = sum(1 for user_trait in learner_traits for instructor_trait in instructor_traits
                                    if user_trait['trait_category_id'] == instructor_trait['trait_category_id']
                                    and user_trait['captured_trait'] == instructor_trait['captured_trait'])
             similarity_percentage = round(similarity_count / 13 * 100)
-
-            # Append results for this instructor
             results.append({
                 'instructor_id': f"{instructor['id']} ",
                 'instructor_name': f"{instructor['first_name']} {instructor['last_name']}",
@@ -85,7 +74,6 @@ def home():
             })
             results = sorted(results, key=lambda x: x['similarity_percentage'], reverse=True)
 
-        # Move the return statement outside of the loop
         return render_template('index.html', user_info=user_info, results=results)
 
     return render_template('index.html', user_info=user_info,instructors=instructors)
@@ -94,7 +82,6 @@ def home():
 def view_instructors():
     user_id = session.get('user_id')
     user_info = None
-    # Fetch instructors with additional information from instructor_details
     cursor = mysql.connection.cursor()
     query = '''
         SELECT users.*, instructor_details.*
@@ -113,16 +100,12 @@ def view_instructors():
         cursor.close()
 
         cursor = mysql.connection.cursor()
-        # Fetch captured traits for the user
         cursor.execute('SELECT * FROM captured_learner_traits WHERE user_id = %s', (user_id,))
         learner_traits = cursor.fetchall()
 
-        # Prepare a list to store the results
         results = []
-
-        # Calculate and store the similarity count for each instructor
         for instructor in instructors:
-            # Fetch captured traits for each instructor
+
             cursor = mysql.connection.cursor()
             cursor.execute('SELECT * FROM captured_traits WHERE user_id = %s', (instructor['id'],))
             instructor_traits = cursor.fetchall()
@@ -134,7 +117,6 @@ def view_instructors():
                                    and user_trait['captured_trait'] == instructor_trait['captured_trait'])
             similarity_percentage = round(similarity_count / 13 * 100)
 
-            # Append results for this instructor
             results.append({
                 'instructor_id': f"{instructor['id']} ",
                 'instructor_name': f"{instructor['first_name']} {instructor['last_name']}",
@@ -143,7 +125,6 @@ def view_instructors():
             })
             results = sorted(results, key=lambda x: x['similarity_percentage'], reverse=True)
 
-        # Move the return statement outside of the loop
         return render_template('view_instructors.html', user_info=user_info, results=results)
 
     return render_template('view_instructors.html', user_info=user_info, instructors=instructors)
@@ -175,7 +156,7 @@ def filter_instructors():
             cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
             user_info = cursor.fetchone()
             cursor.close()
-            # perform filtering from the search From
+
             cursor = mysql.connection.cursor()
             query = '''
                     SELECT users.*, instructor_details.*
@@ -191,16 +172,12 @@ def filter_instructors():
             'instructor', charges_max, vehicle_transmission_type, vehicle_category, min_experience, max_experience))
             instructors = cursor.fetchall()
 
-            # Fetch captured traits for the user
             cursor.execute('SELECT * FROM captured_learner_traits WHERE user_id = %s', (user_id,))
             learner_traits = cursor.fetchall()
 
-            # Prepare a list to store the results
             results = []
 
-            # Calculate and store the similarity count for each instructor
             for instructor in instructors:
-                # Fetch captured traits for each instructor
                 cursor = mysql.connection.cursor()
                 cursor.execute('SELECT * FROM captured_traits WHERE user_id = %s', (instructor['id'],))
                 instructor_traits = cursor.fetchall()
@@ -212,7 +189,6 @@ def filter_instructors():
                                        and user_trait['captured_trait'] == instructor_trait['captured_trait'])
                 similarity_percentage = round(similarity_count / 13 * 100)
 
-                # Append results for this instructor
                 results.append({
                     'instructor_id': f"{instructor['id']} ",
                     'instructor_name': f"{instructor['first_name']} {instructor['last_name']}",
@@ -220,10 +196,10 @@ def filter_instructors():
                     'similarity_percentage': similarity_percentage
                 })
 
-            # Move the sorting outside the loop
+
             results = sorted(results, key=lambda x: x['similarity_percentage'], reverse=True)
 
-            # Move the return statement outside of the loop
+
             return render_template('view_instructors.html', user_info=user_info, results=results)
 
     return render_template('view_instructors.html', user_info=user_info)
@@ -260,7 +236,7 @@ def register():
         role = request.form['role']
         hashed_password = sha256_crypt.encrypt(password)
 
-        # Store user in the MySQL database
+        # Store user in the  database
         cursor = mysql.connection.cursor()
         cursor.execute('''
             INSERT INTO users (first_name, last_name, username, email, role, password)
@@ -270,8 +246,7 @@ def register():
         cursor.execute('SELECT id FROM users WHERE username = %s', (username,))
         user_id = cursor.fetchone()['id']
         cursor.close()
-
-        # Start a session and store user_id
+        # Start session and store user_id
         session['user_id'] = user_id
         if role == 'learner':
             return redirect(url_for('capture_traits'))
@@ -301,16 +276,87 @@ def login():
             else:
                 return redirect(url_for('home'))
         else:
-            # Invalid credentials, show an error message or redirect to the login page
+            # Invalid credentials
             return render_template('login.html', error='Invalid email or password')
 
     return render_template('login.html')
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
+        user = cursor.fetchone()
+        cursor.close()
+
+        if user:
+            token = secrets.token_urlsafe(20)
+            cursor = mysql.connection.cursor()
+            cursor.execute('''
+                                INSERT INTO password_reset (email, token)
+                                VALUES (%s, %s)
+                            ''', (email, token))
+            mysql.connection.commit()
+            cursor.close()
+            return redirect(url_for('confirm_password', email=email, token=token))
+        else:
+            return render_template('forgot_password.html', error="Email not found.")
+
+    return render_template('forgot_password.html')
+
+
+@app.route('/confirm_password', methods=['GET', 'POST'])
+def confirm_password():
+    email = request.args.get('email', '')
+    token = request.args.get('token', '')
+    if request.method == 'POST':
+            return render_template('forgot_password.html', error="Email not found.")
+
+    return render_template('confirm_password.html', email=email, token=token)
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_password():
+    if request.method == 'GET':
+        # Handle GET request
+        email = request.args.get('email', '')
+        token = request.args.get('token', '')
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM password_reset WHERE email = %s AND token = %s', (email, token))
+        password_reset_row = cursor.fetchone()
+        cursor.close()
+
+        if password_reset_row:
+            return render_template('reset_password.html', email=email)
+        else:
+            return render_template('forgot_password.html', error='Invalid email or token')
+
+    elif request.method == 'POST':
+        # Handle POST request
+        email = request.form.get('email', '')
+        new_password = request.form.get('new_password', '')
+        hashed_password = sha256_crypt.encrypt(new_password)
+
+        # Update the user's password in the users table
+        cursor = mysql.connection.cursor()
+        cursor.execute('UPDATE users SET password = %s WHERE email = %s', (new_password, email))
+        mysql.connection.commit()
+        cursor.close()
+
+        # cursor = mysql.connection.cursor()
+        # cursor.execute('DELETE FROM password_reset WHERE email = %s', (email,))
+        # mysql.connection.commit()
+        # cursor.close()
+
+        return redirect(url_for('login'))
+
 
 
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('home'))
+
 
 
 def allowed_file(filename):
@@ -342,8 +388,6 @@ def capture_traits():
                     filename = secure_filename(file.filename)
                     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                     file.save(file_path)
-
-                    # Update the users table with the file name
                     cursor.execute('''
                         UPDATE users
                         SET profile_pic_url = %s
@@ -352,17 +396,12 @@ def capture_traits():
                     mysql.connection.commit()
 
             cursor.close()
-
-            # insert traits into captured traits
             captured_traits = []
-            # Iterate over form data to get selected traits
             for key, value in request.form.items():
                 if key.startswith('trait_category_') and value.isdigit():
                     trait_category_id = int(key.split('_')[-1])
                     captured_trait_id = int(value)
                     captured_traits.append((user_id, trait_category_id, captured_trait_id))
-
-                # Insert selected traits into captured_traits table
             cursor = mysql.connection.cursor()
             cursor.executemany('''
                             INSERT INTO captured_learner_traits (user_id, trait_category_id, captured_trait)
@@ -374,8 +413,8 @@ def capture_traits():
 
             return redirect(url_for('success_page'))
 
-    # If it's a GET request, retrieve traits from the database
-    user_id = session.get('user_id')  # Assuming you store user_id in the session after login
+
+    user_id = session.get('user_id')
     if user_id:
         cursor = mysql.connection.cursor()
         cursor.execute('SELECT * FROM trait_categories')
@@ -421,9 +460,6 @@ def instructor_on_boarding():
 
     return redirect(url_for('register'))
 
-
-# capture instructor traits
-
 @app.route('/capture_instructor_traits', methods=['GET', 'POST'])
 def capture_instructor_traits():
     if request.method == 'POST':
@@ -440,7 +476,7 @@ def capture_instructor_traits():
         user_id = session.get('user_id')
 
         if user_id:
-            # Update the users table with the submitted values
+
             cursor = mysql.connection.cursor()
             cursor.execute('''
                 UPDATE users
@@ -456,8 +492,6 @@ def capture_instructor_traits():
                     filename = secure_filename(file.filename)
                     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                     file.save(file_path)
-
-                    # Update the users table with the file name
                     cursor.execute('''
                         UPDATE users
                         SET profile_pic_url = %s
@@ -467,7 +501,7 @@ def capture_instructor_traits():
 
             cursor.close()
 
-            # insert more instructor details
+
             cursor = mysql.connection.cursor()
             cursor.execute('''
                 INSERT INTO instructor_details (user_id, instructor_experience, instructor_charges, instructor_vehicle_transmission_type, instructor_vehicle_category, instructor_vehicle_model, instructor_description, instructor_mins_per_session)
@@ -475,19 +509,14 @@ def capture_instructor_traits():
             ''', (user_id, instructor_experience, instructor_charges_per_session, vehicle_transmission_type, vehicle_category, vehicle_model, instructor_description, instructor_minutes_per_session ))
             mysql.connection.commit()
             cursor.close()
-
-
-
-            # insert traits into captured traits
             captured_traits = []
-            # Iterate over form data to get selected traits
             for key, value in request.form.items():
                 if key.startswith('trait_category_') and value.isdigit():
                     trait_category_id = int(key.split('_')[-1])
                     captured_trait_id = int(value)
                     captured_traits.append((user_id, trait_category_id, captured_trait_id))
 
-                # Insert selected traits into captured_traits table
+
             cursor = mysql.connection.cursor()
             cursor.executemany('''
                             INSERT INTO captured_traits (user_id, trait_category_id, captured_trait)
@@ -498,8 +527,6 @@ def capture_instructor_traits():
 
 
             return redirect(url_for('instructor_success_page'))
-
-    # If user_id is not available in the session
     return redirect(url_for('register'))
 
 @app.route('/view_single_instructor_details/<int:instructor_id>')
@@ -570,14 +597,12 @@ def book_appointment():
         learner_id = request.form.get('learner_id')
         instructor_id = request.form.get('instructor_id')
         appointment_date_time_str = request.form.get('appointment_date_time')
-
-        # Convert the input string to a datetime object
         appointment_date_time = datetime.strptime(appointment_date_time_str, '%Y-%m-%dT%H:%M')
 
         # Calculate the end time of the appointment (assuming each appointment takes 2 hours)
         appointment_end_time = appointment_date_time + timedelta(hours=2)
 
-        # Check if the appointment time slot is available for the instructor
+        # Check  time slot is available
         cursor = mysql.connection.cursor()
         cursor.execute('''
                         SELECT * FROM appointments
@@ -595,7 +620,7 @@ def book_appointment():
             return redirect(url_for('view_single_instructor_details', instructor_id=instructor_id))
         else:
             cursor = mysql.connection.cursor()
-            # If the time slot is available, insert the new appointment
+            # If time slot is available, insert  new appointment
             cursor.execute('''
                             INSERT INTO appointments (learner_id, instructor_id, appointment_date_time)
                             VALUES (%s, %s, %s)
@@ -617,17 +642,14 @@ def update_appointment_status():
         submitted_action = request.form.get('submit')
         print(instructor_id)
 
-        # Determine the new state based on the submitted action
         new_state = 1 if submitted_action == "Approve" else 2
 
         user_id = int(session.get('user_id'))
         print(user_id)
         if user_id == instructor_id:
             try:
-                # Convert the input string to a datetime object
-                appointment_date_time = datetime.strptime(appointment_date_time_str, '%Y-%m-%dT%H:%M')
 
-                # Update the appointments table's state where the row matches the submitted data
+                appointment_date_time = datetime.strptime(appointment_date_time_str, '%Y-%m-%dT%H:%M')
                 cursor = mysql.connection.cursor()
                 cursor.execute('''
                                 UPDATE appointments
@@ -640,7 +662,6 @@ def update_appointment_status():
                 mysql.connection.commit()
                 cursor.close()
 
-                # Flash message based on the new state
                 if new_state == 1:
                     flash("Appointment approved successfully", "success")
                 else:
@@ -671,11 +692,12 @@ def learner_dashboard():
         cursor.close()
         cursor = mysql.connection.cursor()
         cursor.execute('''
-            SELECT appointments.*, users.*
-            FROM appointments
-            JOIN users ON appointments.instructor_id = users.id
-            WHERE learner_id = %s
-        ''', (user_id,))
+                   SELECT appointments.*, users.*, instructor_details.instructor_charges
+                   FROM appointments
+                   JOIN users ON appointments.instructor_id = users.id
+                   JOIN instructor_details ON appointments.instructor_id = instructor_details.user_id
+                   WHERE learner_id = %s
+               ''', (user_id,))
         learner_appointments = cursor.fetchall()
         cursor.close()
         return render_template('learner_dashboard.html', user_info=user_info, learner_appointments=learner_appointments)
@@ -691,17 +713,13 @@ def update_appointment_status_leaner():
         submitted_action = request.form.get('submit')
         print(learner_id)
 
-        # Determine the new state based on the submitted action
         new_state = 1 if submitted_action == "Approve" else 2
 
         user_id = int(session.get('user_id'))
         print(user_id)
         if user_id == learner_id:
             try:
-                # Convert the input string to a datetime object
                 appointment_date_time = datetime.strptime(appointment_date_time_str, '%Y-%m-%dT%H:%M')
-
-                # Update the appointments table's state where the row matches the submitted data
                 cursor = mysql.connection.cursor()
                 cursor.execute('''
                                 UPDATE appointments
@@ -713,8 +731,6 @@ def update_appointment_status_leaner():
 
                 mysql.connection.commit()
                 cursor.close()
-
-                # Flash message based on the new state
                 if new_state == 1:
                     flash("Appointment approved successfully", "success")
                 else:

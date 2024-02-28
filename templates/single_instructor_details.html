@@ -96,6 +96,8 @@
                         <i class="far fa-star"></i>
                      {% endif %}
                 {% endfor %}
+            <br/>
+            <a href="mailto:{{ instructor.email }}" class="btn btn-info">Contact</a>
           </div>
          <div>
          {{ instructor_details.instructor_description }}
@@ -103,6 +105,18 @@
 
          <div>
          <table class="table  table-striped ">
+         <tr>
+         <td>Email</td>
+         <td>{{ instructor.email }}</td>
+         </tr>
+         <tr>
+         <td>Age</td>
+         <td>{{ instructor.age }}</td>
+         </tr>
+         <tr>
+         <td>Language </td>
+         <td>{{ instructor.language }}</td>
+         </tr>
          <tr>
          <td>
          No of years of experience
