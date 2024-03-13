@@ -251,6 +251,7 @@ background-color: #6AD3BF;
 </head>
 
 <body>
+
     <div class="side-menu">
         <div class="brand-name">
             <h1>Dashboard</h1>
@@ -259,9 +260,15 @@ background-color: #6AD3BF;
             <a href="/">Go to Home page</a>
         </div>
         <ul style="margin-top: 20px;">
-            <li id="active"><a href="instructor_dashboard">Appointments </a> </li>
-            <li><a href="profile">Profile</a></li>
-            <li> <a href="logout">LOGOUT</a> </li>
+        {% if user_info %}
+          {% if user_info.role == 'instructor' %}
+            <li><a href="/instructor_dashboard">Appointments </a> </li>
+          {% else %}
+            <li><a href="/learner_dashboard">Appointments </a> </li>
+          {% endif %}
+        {% endif %}
+            <li ><a href="/profile">Profile</a></li>
+            <li> <a href="/logout">LOGOUT</a> </li>
 
 
         </ul>
@@ -270,28 +277,21 @@ background-color: #6AD3BF;
         <div class="header">
             <div class="nav">
                 <div class="search">
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for message in messages %}
-                {% if "error" in message %}
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                {% else %}
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-</div>
+                {% with messages = get_flashed_messages() %}
+                 {% if messages %}
+                 {% for message in messages %}
+                   <div class="alert alert-success alert-dismissible fade show" role="alert">
+                       {{ message }}
+                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              {% endfor %}
+           {% endif %}
+           {% endwith %}
+
+
+                </div>
                 <div class="user">
 
                     <a class="nav-link py-3 px-0 px-lg-3 rounded dropdown-toggle" style="color: #2C3E50;" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="color: white;">
@@ -314,69 +314,97 @@ background-color: #6AD3BF;
 
             </div>
             <div class="content-2">
+            <a href="javascript:history.back()" class="btn btn-info"> Go back</a>
                 <div class="recent-payments">
+
                     <div class="title">
-                        <h2>Recent matches</h2>
 
+                        <h2 style="color: #2C3E50;">Learner's Profile</h2>
                     </div>
-                     <table class="table table-striped">
-                        <tr>
-                            <th>Learner</th>
-                            <th>Appointment Time</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                        {% for instructor_appointment in instructor_appointments %}
-                        <tr>
-                        <td>
-                        {{ instructor_appointment.first_name }}
-                        {{ instructor_appointment.last_name }}
-                        </td>
-                        <td>
-                        {{ instructor_appointment.appointment_date_time.strftime('%b %dth %Y at %H:%M hours') }}
-                        </td>
-                        <td>
-                        {% if instructor_appointment.status == 0 %}
-                           Pending
-                        {% elif instructor_appointment.status == 1 %}
-                           Approved
-                        {% elif instructor_appointment.status == 2 %}
-                           Canceled
-                        {% else %}
-                            Unknown Status
-                        {% endif %}
-                        </td>
-                        <td>
-                        <form action="update_appointment_status_instructor" method="post">
-                        <input type="number" value="{{instructor_appointment.learner_id}}" name="learner_id" hidden>
-                        <input type="number" value="{{instructor_appointment.instructor_id}}" name="instructor_id" hidden>
-                        <input type="datetime-local" value="{{instructor_appointment.appointment_date_time}}" name="appointment_date_time" hidden>
-                        {% if instructor_appointment.status == 0 %}
-                           <input type="submit"class="btn btn-primary" name="submit" value="Approve">
-                           <input type="submit"class="btn btn-danger" name="submit" value="Cancel">
-                        {% elif instructor_appointment.status == 1 %}
-                           <input type="submit"class="btn btn-danger" name="submit" value="Cancel">
-                        {% endif %}
-                        <a href="{{ url_for('view_single_learner_details', learner_id=instructor_appointment.learner_id) }}" class="btn btn-info">View</a>
-                        </form>
+                    <table class="table table-striped">
+                     {% if learner %}
+                    <tr>
+                    <td>
+                    Profile Pic
+                    </td>
+                   <td>
+                       {% if learner.profile_pic_url %}
+                           <img src="{{ url_for('static', filename='uploads/images/' + learner.profile_pic_url) }}" alt="..." class="rounded-circle" style="width: 40px; height: 40px;">
+                       {% else %}
+                           <img src="{{ url_for('static', filename='uploads/images/default_pic.png') }}" alt="..." class="rounded-circle" style="width: 40px; height: 40px;">
+                       {% endif %}
+                    </td>
+                    </tr>
+                    <tr>
+                    <td>
+                    Username
+                    </td>
+                    <td>
+                    {{learner.username}}
+                    </td>
+                    </tr>
+                    <tr>
+                    <td>
+                    Full name
+                    </td>
+                    <td>
+                    {{learner.first_name}} {{learner.last_name}}
+                    </td>
+                    </tr>
+                    <tr>
+                    <td>
+                    Email
+                    </td>
+                    <td>
+                    {{learner.email}}
+                    </td>
+                    </tr>
+                    <tr>
+                    <td>
+                    Preferred language
+                    </td>
+                    <td>
+                    {{learner.language}}
+                    </td>
+                    </tr>
+                    <tr>
+                    <td>
+                    Age
+                    </td>
+                    <td>
+                    {{learner.age}}
+                    </td>
+                    </tr>
+                    <tr>
+                    <td>
+                    Gender
+                    </td>
+                    <td>
+                    {% if learner.gender == 'M' %}
+                    Male
+                    {% elif learner.gender == 'F' %}
+                    Female
+                   {% else %}
+                   Not specified
+                   {% endif %}
+
+                    </td>
+                    </tr>
 
 
-                        </td>
 
-
-                        </tr>
-                        {% endfor %}
-
+                    {% endif %}
                     </table>
                 </div>
 
             </div>
         </div>
     </div>
-        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 </body>
+
 
 </html>
 

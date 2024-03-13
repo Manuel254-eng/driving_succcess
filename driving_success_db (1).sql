@@ -1,4 +1,21 @@
+-- phpMyAdmin SQL Dump
+-- version 5.1.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Generation Time: Mar 13, 2024 at 02:00 AM
+-- Server version: 10.4.21-MariaDB
+-- PHP Version: 8.0.11
 
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
 
 --
 -- Database: `driving_success_db`
@@ -24,10 +41,12 @@ CREATE TABLE `appointments` (
 --
 
 INSERT INTO `appointments` (`id`, `learner_id`, `instructor_id`, `appointment_date_time`, `status`, `created_at`) VALUES
-(14, 20, 22, '2024-01-17 10:00:00', 0, '2024-01-16 07:21:53'),
-(15, 20, 23, '2024-01-26 20:00:00', 0, '2024-01-16 16:00:09'),
+(14, 20, 22, '2024-01-17 10:00:00', 2, '2024-01-16 07:21:53'),
+(15, 20, 23, '2024-01-26 20:00:00', 2, '2024-01-16 16:00:09'),
 (16, 20, 21, '2024-01-16 20:30:00', 0, '2024-01-16 16:07:32'),
-(17, 20, 21, '2024-01-26 20:17:00', 0, '2024-01-16 16:13:16');
+(17, 20, 21, '2024-01-26 20:17:00', 0, '2024-01-16 16:13:16'),
+(18, 20, 21, '2024-01-27 14:00:00', 1, '2024-01-24 00:56:22'),
+(19, 20, 24, '2024-03-16 13:00:00', 0, '2024-03-13 00:22:02');
 
 -- --------------------------------------------------------
 
@@ -119,7 +138,20 @@ INSERT INTO `captured_traits` (`id`, `user_id`, `trait_category_id`, `captured_t
 (77, 23, 10, 22, '2024-01-16 07:16:56'),
 (78, 23, 11, 23, '2024-01-16 07:16:56'),
 (79, 23, 12, 25, '2024-01-16 07:16:56'),
-(80, 23, 13, 2, '2024-01-16 07:16:56');
+(80, 23, 13, 2, '2024-01-16 07:16:56'),
+(81, 24, 1, 3, '2024-03-12 23:45:16'),
+(82, 24, 2, 5, '2024-03-12 23:45:16'),
+(83, 24, 3, 7, '2024-03-12 23:45:16'),
+(84, 24, 4, 9, '2024-03-12 23:45:16'),
+(85, 24, 5, 11, '2024-03-12 23:45:16'),
+(86, 24, 6, 13, '2024-03-12 23:45:16'),
+(87, 24, 7, 15, '2024-03-12 23:45:16'),
+(88, 24, 8, 17, '2024-03-12 23:45:16'),
+(89, 24, 9, 19, '2024-03-12 23:45:16'),
+(90, 24, 10, 21, '2024-03-12 23:45:16'),
+(91, 24, 11, 23, '2024-03-12 23:45:16'),
+(92, 24, 12, 25, '2024-03-12 23:45:16'),
+(93, 24, 13, 2, '2024-03-12 23:45:16');
 
 -- --------------------------------------------------------
 
@@ -148,7 +180,8 @@ CREATE TABLE `instructor_details` (
 INSERT INTO `instructor_details` (`id`, `user_id`, `instructor_experience`, `instructor_charges`, `instructor_vehicle_transmission_type`, `instructor_vehicle_category`, `instructor_vehicle_model`, `instructor_description`, `instructor_mins_per_session`, `instructor_rating`, `created_at`) VALUES
 (3, 21, 10, 250, 'manual', 'sedan', 'Toyota Corolla', ' \r\nWelcome to the profile of an experienced and dedicated driving instructor, committed to shaping confident and responsible drivers for a safer road experience. With a passion for teaching and a focus on fostering good driving habits, I provide comprehen', 120, 0, '2024-01-16 07:01:29'),
 (4, 22, 5, 300, 'automatic', 'suv', 'Nissan Rogue', ' As a certified driving instructor, I bring a wealth of knowledge and expertise to the table. I stay updated on the latest traffic laws, safety regulations, and teaching methodologies to ensure that my students receive the most relevant and effective inst', 120, 0, '2024-01-16 07:10:46'),
-(5, 23, 6, 200, 'manual', 'sedan', ' BMW ALPINA', ' My teaching philosophy revolves around creating a positive and supportive learning environment. I understand that each student is unique, and I tailor my instruction to suit individual learning styles. Whether you\'re a nervous beginner or looking to enha', 120, 0, '2024-01-16 07:16:56');
+(5, 23, 6, 200, 'manual', 'sedan', ' BMW ALPINA', ' My teaching philosophy revolves around creating a positive and supportive learning environment. I understand that each student is unique, and I tailor my instruction to suit individual learning styles. Whether you\'re a nervous beginner or looking to enha', 120, 0, '2024-01-16 07:16:56'),
+(6, 24, 5, 350, 'manual', 'sedan', 'Volkswagen Jetta SE', ' With over 5 years of dedicated experience in teaching individuals of all ages how to drive safely and confidently, I am passionate about empowering students to become competent and responsible drivers. My comprehensive approach combines practical instruc', 60, 0, '2024-03-12 23:45:14');
 
 -- --------------------------------------------------------
 
@@ -281,6 +314,31 @@ INSERT INTO `in_built_traits` (`id`, `trait_name`, `trait_category`, `created_at
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `password_reset`
+--
+
+CREATE TABLE `password_reset` (
+  `id` int(11) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `password_reset`
+--
+
+INSERT INTO `password_reset` (`id`, `email`, `token`, `created_at`) VALUES
+(1, 'johndoe@test.com', 'eqkkd_mPAz-2hKjXV49gAlRyeGI', '2024-02-28 02:20:18'),
+(2, 'joebloggs@gmail.com', 'Xme4E8gHDLAu8D_HGrZgCGv1NhE', '2024-02-28 02:24:45'),
+(3, 'janedoe@test.com', 'q-5qIH5NHRP42a6N0ypB9wvwf1M', '2024-02-28 02:29:16'),
+(4, 'tommy@test.com', '2-RE6jObyV_Lir3m-0G6kA1RzUg', '2024-02-28 02:39:46'),
+(5, 'johndoe@test.com', 'Ypzd-leZlPdmOg_L0bFerJRtpVM', '2024-02-28 11:25:56'),
+(6, 'johndoe@test.com', 'OfgaxwGiO3FFKpu6SSudiGLBCfU', '2024-02-28 12:13:46');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `trait_categories`
 --
 
@@ -323,6 +381,7 @@ CREATE TABLE `users` (
   `last_name` varchar(255) NOT NULL,
   `username` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
+  `phone` varchar(255) DEFAULT NULL,
   `role` varchar(255) NOT NULL,
   `profile_pic_url` varchar(255) DEFAULT NULL,
   `age` int(11) DEFAULT NULL,
@@ -335,11 +394,12 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `first_name`, `last_name`, `username`, `email`, `role`, `profile_pic_url`, `age`, `gender`, `language`, `password`) VALUES
-(20, 'John', 'Doe', 'John_Doe', 'johndoe@test.com', 'learner', 'user_1.jpg', 25, 'M', 'English', '$5$rounds=535000$pxse1H.bM/3BSGTj$DQTBikh5onItYjE.5Yh3UaeRphC7lpfxMeGy.lJhyu8'),
-(21, 'Joe', ' Bloggs ', ' Joe_Bloggs ', 'joebloggs@gmail.com', 'instructor', 'user_2.jpg', 35, 'M', 'English', '$5$rounds=535000$lI.4vwCJh8K3.dVK$jdhDnFPSEuGYM0ZoYNYzOXGUjJOz8i62njzxl/Feb./'),
-(22, 'Jane', 'Doe', 'jane', 'janedoe@test.com', 'instructor', 'user_3.jpg', 25, 'F', 'English', '$5$rounds=535000$/QBTn13GW1rFTYKs$KteSoVSlOP7BPZ92LhFHj0BgE27vK7.gLQp6bTVi0u2'),
-(23, 'Tommy', 'Atkins', 'tommy', 'tommy@test.com', 'instructor', 'user_4.jpg', 30, 'M', 'English', '$5$rounds=535000$pvUm7NCpttFLRTNf$QDM6IeK5ngYspfM4gGj8vXR.s9Ofz.RvGgMAMuEbQn7');
+INSERT INTO `users` (`id`, `first_name`, `last_name`, `username`, `email`, `phone`, `role`, `profile_pic_url`, `age`, `gender`, `language`, `password`) VALUES
+(20, 'John', 'Doe', 'John_Doe', 'johndoe@test.com', '555-255554', 'learner', 'user_1.jpg', 25, 'M', 'English', '$5$rounds=535000$pxse1H.bM/3BSGTj$DQTBikh5onItYjE.5Yh3UaeRphC7lpfxMeGy.lJhyu8'),
+(21, 'Joe', ' Bloggs ', ' Joe_Bloggs ', 'joebloggs@gmail.com', '89908787774', 'instructor', 'user_2.jpg', 35, 'M', 'English', '$5$rounds=535000$lI.4vwCJh8K3.dVK$jdhDnFPSEuGYM0ZoYNYzOXGUjJOz8i62njzxl/Feb./'),
+(22, 'Jane', 'Doe', 'jane', 'janedoe@test.com', '897489555', 'instructor', 'user_3.jpg', 25, 'F', 'English', '$5$rounds=535000$/QBTn13GW1rFTYKs$KteSoVSlOP7BPZ92LhFHj0BgE27vK7.gLQp6bTVi0u2'),
+(23, 'Tommy', 'Atkins', 'tommy', 'tommy@test.com', '855552222', 'instructor', 'user_4.jpg', 30, 'M', 'English', '$5$rounds=535000$pvUm7NCpttFLRTNf$QDM6IeK5ngYspfM4gGj8vXR.s9Ofz.RvGgMAMuEbQn7'),
+(24, 'William', 'Saliba', 'williamsaliba', 'williamsaliba@gmail.cm', '222222222', 'instructor', 'pexels-nguyen-gia-huy-tran-2285991.jpg', 35, 'M', 'English', '$5$rounds=535000$UHu4VDu5lhnGulBh$UoyXgvlvJ84X3ZZRJ5eHtS8wR9Ii11289xEu6cxRG9B');
 
 -- --------------------------------------------------------
 
@@ -408,6 +468,12 @@ ALTER TABLE `in_built_traits`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `password_reset`
+--
+ALTER TABLE `password_reset`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `trait_categories`
 --
 ALTER TABLE `trait_categories`
@@ -434,7 +500,7 @@ ALTER TABLE `user_traits`
 -- AUTO_INCREMENT for table `appointments`
 --
 ALTER TABLE `appointments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `captured_learner_traits`
@@ -446,13 +512,13 @@ ALTER TABLE `captured_learner_traits`
 -- AUTO_INCREMENT for table `captured_traits`
 --
 ALTER TABLE `captured_traits`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
 
 --
 -- AUTO_INCREMENT for table `instructor_details`
 --
 ALTER TABLE `instructor_details`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `instructor_reviews`
@@ -479,6 +545,12 @@ ALTER TABLE `in_built_traits`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
+-- AUTO_INCREMENT for table `password_reset`
+--
+ALTER TABLE `password_reset`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
 -- AUTO_INCREMENT for table `trait_categories`
 --
 ALTER TABLE `trait_categories`
@@ -488,7 +560,7 @@ ALTER TABLE `trait_categories`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `user_traits`
@@ -506,3 +578,7 @@ ALTER TABLE `user_traits`
 ALTER TABLE `user_traits`
   ADD CONSTRAINT `user_traits_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

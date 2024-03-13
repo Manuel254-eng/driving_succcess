@@ -232,6 +232,7 @@ def register():
         last_name = request.form['last_name']
         username = request.form['username']
         email = request.form['email']
+        phone = request.form['phone']
         password = request.form['password']
         role = request.form['role']
         hashed_password = sha256_crypt.encrypt(password)
@@ -239,9 +240,9 @@ def register():
         # Store user in the  database
         cursor = mysql.connection.cursor()
         cursor.execute('''
-            INSERT INTO users (first_name, last_name, username, email, role, password)
+            INSERT INTO users (first_name, last_name, username, email, phone, role, password)
             VALUES (%s, %s, %s, %s, %s, %s)
-        ''', (first_name, last_name, username, email, role, hashed_password))
+        ''', (first_name, last_name, username, email, phone, role, hashed_password))
         mysql.connection.commit()
         cursor.execute('SELECT id FROM users WHERE username = %s', (username,))
         user_id = cursor.fetchone()['id']
@@ -315,6 +316,7 @@ def confirm_password():
 
     return render_template('confirm_password.html', email=email, token=token)
 
+
 @app.route('/reset_password', methods=['GET', 'POST'])
 def reset_password():
     if request.method == 'GET':
@@ -335,20 +337,27 @@ def reset_password():
         # Handle POST request
         email = request.form.get('email', '')
         new_password = request.form.get('new_password', '')
-        hashed_password = sha256_crypt.encrypt(new_password)
 
-        # Update the user's password in the users table
-        cursor = mysql.connection.cursor()
-        cursor.execute('UPDATE users SET password = %s WHERE email = %s', (new_password, email))
-        mysql.connection.commit()
-        cursor.close()
+        try:
+            hashed_password = sha256_crypt.encrypt(new_password)
 
-        # cursor = mysql.connection.cursor()
-        # cursor.execute('DELETE FROM password_reset WHERE email = %s', (email,))
-        # mysql.connection.commit()
-        # cursor.close()
+            # Update the user's password in the users table
+            cursor = mysql.connection.cursor()
+            cursor.execute('UPDATE users SET password = %s WHERE email = %s', (hashed_password, email))
+            mysql.connection.commit()
+            cursor.close()
 
-        return redirect(url_for('login'))
+            # Delete the password_reset_row from the password_reset table
+            cursor = mysql.connection.cursor()
+            cursor.execute('DELETE FROM password_reset WHERE email = %s', (email,))
+            mysql.connection.commit()
+            cursor.close()
+
+            return redirect(url_for('login'))
+
+        except Exception as e:
+            # Handle the exception (e.g., display an error message or log the error)
+            return render_template('error.html', error=str(e))
 
 
 
@@ -550,8 +559,30 @@ def view_single_instructor_details(instructor_id):
         if role == 'learner':
             return render_template('single_instructor_details.html', instructor=instructor, user_info=user_info, instructor_details=instructor_details)
         else:
-            return render_template('instructor_dashboard.html', error='This action is only available to learner accounts')
+            return render_template('error_2.html', error='This action is only available to learner accounts')
     return render_template('login.html', error='Please log in to view instructor details')
+
+@app.route('/view_single_learner_details/<int:learner_id>')
+def view_single_learner_details(learner_id):
+    user_id = session.get('user_id')
+    user_info = None
+    if user_id:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM users WHERE id = %s', (learner_id,))
+        learner = cursor.fetchone()
+        cursor.close()
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+        user_info = cursor.fetchone()
+        role = user_info['role']
+        cursor.close()
+        if role == 'instructor':
+            return render_template('single_learner_details.html', learner=learner, user_info=user_info)
+        else:
+            return render_template('error_2.html', error='This action is only available to instructor accounts')
+    return render_template('login.html', error='Please log in to view instructor details')
+
+
 
 @app.route('/find_instructors',  methods=['GET', 'POST'])
 def find_instructors():
@@ -761,6 +792,38 @@ def view_profile():
 
 
     return render_template('profile.html', user_info=user_info)
+
+@app.route('/edit-profile', methods=['GET', 'POST'])
+def edit_profile():
+    user_id = session.get('user_id')
+    user_info = None
+
+    if user_id:
+        cursor = mysql.connection.cursor()
+        if request.method == 'POST':
+            # Retrieve form data for updating user profile
+            username = request.form['username']
+            first_name = request.form['first_name']
+            last_name = request.form['last_name']
+            email = request.form['email']
+            age = request.form['age']
+
+            # Update user info in the database
+            cursor.execute('UPDATE users SET username = %s, first_name = %s, last_name = %s, email = %s, age = %s WHERE id = %s', (username, first_name, last_name, email, age, user_id))
+            mysql.connection.commit()
+
+            # Redirect to profile page after updating
+            return redirect(url_for('view_profile'))
+        else:
+            # Fetch user info for rendering edit profile page
+            cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+            user_info = cursor.fetchone()
+
+        cursor.close()
+
+    return render_template('edit_profile.html', user_info=user_info)
+
+
 
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'

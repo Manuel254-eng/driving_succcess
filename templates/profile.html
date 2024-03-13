@@ -260,7 +260,13 @@ background-color: #6AD3BF;
             <a href="/">Go to Home page</a>
         </div>
         <ul style="margin-top: 20px;">
+        {% if user_info %}
+          {% if user_info.role == 'instructor' %}
+            <li><a href="instructor_dashboard">Appointments </a> </li>
+          {% else %}
             <li><a href="learner_dashboard">Appointments </a> </li>
+          {% endif %}
+        {% endif %}
             <li id="active"><a href="profile">Profile</a></li>
             <li> <a href="logout">LOGOUT</a> </li>
 
@@ -389,11 +395,14 @@ background-color: #6AD3BF;
 
                     </td>
                     </tr>
-
-
-
+                    <tr>
+                    <td colspan="2">
+                    <a href="/edit-profile" class="btn btn-primary">Edit profile </a>
+                    </td>
+                    </tr>
                     {% endif %}
                     </table>
+
                 </div>
 
             </div>
